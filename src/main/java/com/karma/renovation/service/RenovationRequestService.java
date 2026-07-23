@@ -13,7 +13,8 @@ public class RenovationRequestService {
 
     public RenovationRequestService(
             RenovationRequestRepository renovationRequestRepository) {
-        this.renovationRequestRepository = renovationRequestRepository;
+        this.renovationRequestRepository =
+                renovationRequestRepository;
     }
 
     public RenovationRequest createRenovationRequest(
@@ -31,6 +32,38 @@ public class RenovationRequestService {
     public RenovationRequest getRenovationRequestById(Long id) {
         return renovationRequestRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Renovation request not found"));
+                        new RuntimeException(
+                                "Renovation request not found"));
+    }
+
+    public RenovationRequest updateRenovationRequest(
+            Long id,
+            RenovationRequest updatedRequest) {
+
+        RenovationRequest existingRequest =
+                renovationRequestRepository.findById(id)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Renovation request not found"));
+
+        existingRequest.setCustomerName(
+                updatedRequest.getCustomerName());
+
+        existingRequest.setPhoneNumber(
+                updatedRequest.getPhoneNumber());
+
+        existingRequest.setPropertyAddress(
+                updatedRequest.getPropertyAddress());
+
+        existingRequest.setRenovationType(
+                updatedRequest.getRenovationType());
+
+        existingRequest.setEstimatedBudget(
+                updatedRequest.getEstimatedBudget());
+
+        existingRequest.setStatus(
+                updatedRequest.getStatus());
+
+        return renovationRequestRepository.save(existingRequest);
     }
 }
