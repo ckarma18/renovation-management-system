@@ -27,4 +27,10 @@ public class RenovationRequestService {
     public List<RenovationRequest> getAllRenovationRequests() {
         return renovationRequestRepository.findAll();
     }
+
+    public RenovationRequest getRenovationRequestById(Long id) {
+        return renovationRequestRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Renovation request not found"));
+    }
 }

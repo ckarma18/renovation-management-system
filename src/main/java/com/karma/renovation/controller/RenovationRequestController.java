@@ -3,6 +3,7 @@ package com.karma.renovation.controller;
 import com.karma.renovation.entity.RenovationRequest;
 import com.karma.renovation.service.RenovationRequestService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,5 +32,12 @@ public class RenovationRequestController {
     @GetMapping
     public List<RenovationRequest> getAllRenovationRequests() {
         return renovationRequestService.getAllRenovationRequests();
+    }
+
+    @GetMapping("/{id}")
+    public RenovationRequest getRenovationRequestById(
+            @PathVariable Long id) {
+
+        return renovationRequestService.getRenovationRequestById(id);
     }
 }
