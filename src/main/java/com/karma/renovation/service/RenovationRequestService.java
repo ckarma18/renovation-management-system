@@ -66,4 +66,13 @@ public class RenovationRequestService {
 
         return renovationRequestRepository.save(existingRequest);
     }
+
+    public void deleteRenovationRequest(Long id) {
+
+        if (!renovationRequestRepository.existsById(id)) {
+            throw new RuntimeException("Renovation request not found");
+        }
+
+        renovationRequestRepository.deleteById(id);
+    }
 }

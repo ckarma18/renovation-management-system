@@ -2,13 +2,7 @@ package com.karma.renovation.controller;
 
 import com.karma.renovation.entity.RenovationRequest;
 import com.karma.renovation.service.RenovationRequestService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,40 +14,48 @@ public class RenovationRequestController {
 
     public RenovationRequestController(
             RenovationRequestService renovationRequestService) {
-        this.renovationRequestService =
-                renovationRequestService;
+        this.renovationRequestService = renovationRequestService;
     }
 
+    // Create
     @PostMapping
     public RenovationRequest createRenovationRequest(
             @RequestBody RenovationRequest request) {
 
-        return renovationRequestService
-                .createRenovationRequest(request);
+        return renovationRequestService.createRenovationRequest(request);
     }
 
+    // Read All
     @GetMapping
-    public List<RenovationRequest>
-    getAllRenovationRequests() {
+    public List<RenovationRequest> getAllRenovationRequests() {
 
-        return renovationRequestService
-                .getAllRenovationRequests();
+        return renovationRequestService.getAllRenovationRequests();
     }
 
+    // Read By ID
     @GetMapping("/{id}")
     public RenovationRequest getRenovationRequestById(
             @PathVariable Long id) {
 
-        return renovationRequestService
-                .getRenovationRequestById(id);
+        return renovationRequestService.getRenovationRequestById(id);
     }
 
+    // Update
     @PutMapping("/{id}")
     public RenovationRequest updateRenovationRequest(
             @PathVariable Long id,
             @RequestBody RenovationRequest updatedRequest) {
 
-        return renovationRequestService
-                .updateRenovationRequest(id, updatedRequest);
+        return renovationRequestService.updateRenovationRequest(id, updatedRequest);
+    }
+
+    // Delete
+    @DeleteMapping("/{id}")
+    public String deleteRenovationRequest(
+            @PathVariable Long id) {
+
+        renovationRequestService.deleteRenovationRequest(id);
+
+        return "Renovation request deleted successfully.";
     }
 }
