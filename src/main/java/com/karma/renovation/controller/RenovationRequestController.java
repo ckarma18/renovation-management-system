@@ -4,6 +4,8 @@ import com.karma.renovation.dto.RenovationRequestDTO;
 import com.karma.renovation.dto.RenovationResponseDTO;
 import com.karma.renovation.service.RenovationRequestService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,46 +23,69 @@ public class RenovationRequestController {
                 renovationRequestService;
     }
 
+    // CREATE
     @PostMapping
-    public RenovationResponseDTO createRenovationRequest(
+    public ResponseEntity<RenovationResponseDTO>
+    createRenovationRequest(
             @Valid @RequestBody RenovationRequestDTO requestDTO) {
 
-        return renovationRequestService
-                .createRenovationRequest(requestDTO);
+        RenovationResponseDTO createdRequest =
+                renovationRequestService
+                        .createRenovationRequest(requestDTO);
+
+        return new ResponseEntity<>(
+                createdRequest,
+                HttpStatus.CREATED
+        );
     }
 
+    // READ ALL
     @GetMapping
-    public List<RenovationResponseDTO>
+    public ResponseEntity<List<RenovationResponseDTO>>
     getAllRenovationRequests() {
 
-        return renovationRequestService
-                .getAllRenovationRequests();
+        List<RenovationResponseDTO> requests =
+                renovationRequestService
+                        .getAllRenovationRequests();
+
+        return ResponseEntity.ok(requests);
     }
 
+    // READ BY ID
     @GetMapping("/{id}")
-    public RenovationResponseDTO getRenovationRequestById(
+    public ResponseEntity<RenovationResponseDTO>
+    getRenovationRequestById(
             @PathVariable Long id) {
 
-        return renovationRequestService
-                .getRenovationRequestById(id);
+        RenovationResponseDTO request =
+                renovationRequestService
+                        .getRenovationRequestById(id);
+
+        return ResponseEntity.ok(request);
     }
 
+    // UPDATE
     @PutMapping("/{id}")
-    public RenovationResponseDTO updateRenovationRequest(
+    public ResponseEntity<RenovationResponseDTO>
+    updateRenovationRequest(
             @PathVariable Long id,
             @Valid @RequestBody RenovationRequestDTO requestDTO) {
 
-        return renovationRequestService
-                .updateRenovationRequest(id, requestDTO);
+        RenovationResponseDTO updatedRequest =
+                renovationRequestService
+                        .updateRenovationRequest(id, requestDTO);
+
+        return ResponseEntity.ok(updatedRequest);
     }
 
+    // DELETE
     @DeleteMapping("/{id}")
-    public String deleteRenovationRequest(
+    public ResponseEntity<Void> deleteRenovationRequest(
             @PathVariable Long id) {
 
         renovationRequestService
                 .deleteRenovationRequest(id);
 
-        return "Renovation request deleted successfully.";
+        return ResponseEntity.noContent().build();
     }
 }
