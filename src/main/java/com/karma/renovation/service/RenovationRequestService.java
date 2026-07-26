@@ -5,6 +5,7 @@ import com.karma.renovation.dto.RenovationResponseDTO;
 import com.karma.renovation.entity.RenovationRequest;
 import com.karma.renovation.repository.RenovationRequestRepository;
 import org.springframework.stereotype.Service;
+import com.karma.renovation.exception.ResourceNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -122,7 +123,7 @@ public class RenovationRequestService {
 
         return renovationRequestRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "Renovation request not found with ID: "
                                         + id));
     }

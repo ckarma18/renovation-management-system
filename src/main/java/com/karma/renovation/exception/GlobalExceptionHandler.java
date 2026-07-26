@@ -37,4 +37,19 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST
         );
     }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, String>>
+    handleResourceNotFoundException(
+            ResourceNotFoundException exception) {
+
+        Map<String, String> error = new LinkedHashMap<>();
+
+        error.put("message", exception.getMessage());
+
+        return new ResponseEntity<>(
+                error,
+                HttpStatus.NOT_FOUND
+        );
+    }
 }
