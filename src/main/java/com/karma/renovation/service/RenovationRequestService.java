@@ -1,9 +1,12 @@
 package com.karma.renovation.service;
 
+import com.karma.renovation.dto.RenovationRequestDTO;
+import com.karma.renovation.dto.RenovationResponseDTO;
 import com.karma.renovation.entity.RenovationRequest;
 import com.karma.renovation.repository.RenovationRequestRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -13,66 +16,135 @@ public class RenovationRequestService {
 
     public RenovationRequestService(
             RenovationRequestRepository renovationRequestRepository) {
+
         this.renovationRequestRepository =
                 renovationRequestRepository;
     }
 
-    public RenovationRequest createRenovationRequest(
-            RenovationRequest request) {
+    // CREATE
+    public RenovationResponseDTO createRenovationRequest(
+            RenovationRequestDTO requestDTO) {
 
+        RenovationRequest request = new RenovationRequest();
+
+        request.setCustomerName(requestDTO.getCustomerName());
+        request.setPhoneNumber(requestDTO.getPhoneNumber());
+        request.setPropertyAddress(requestDTO.getPropertyAddress());
+        request.setRenovationType(requestDTO.getRenovationType());
+        request.setEstimatedBudget(requestDTO.getEstimatedBudget());
+
+        // A newly created request always starts as PENDING
         request.setStatus("PENDING");
 
-        return renovationRequestRepository.save(request);
+        RenovationRequest savedRequest =
+                renovationRequestRepository.save(request);
+
+        return convertToResponseDTO(savedRequest);
     }
 
-    public List<RenovationRequest> getAllRenovationRequests() {
-        return renovationRequestRepository.findAll();
+    // READ ALL
+    public List<RenovationResponseDTO> getAllRenovationRequests() {
+
+        List<RenovationRequest> requests =
+                renovationRequestRepository.findAll();
+
+        List<RenovationResponseDTO> responseDTOList =
+                new ArrayList<>();
+
+        for (RenovationRequest request : requests) {
+            responseDTOList.add(convertToResponseDTO(request));
+        }
+
+        return responseDTOList;
     }
 
-    public RenovationRequest getRenovationRequestById(Long id) {
+    // READ BY ID
+    public RenovationResponseDTO getRenovationRequestById(Long id) {
+
+        RenovationRequest request =
+                findRenovationRequestById(id);
+
+        return convertToResponseDTO(request);
+    }
+
+    // UPDATE
+    public RenovationResponseDTO updateRenovationRequest(
+            Long id,
+            RenovationRequestDTO requestDTO) {
+
+        RenovationRequest existingRequest =
+                findRenovationRequestById(id);
+
+        existingRequest.setCustomerName(
+                requestDTO.getCustomerName());
+
+        existingRequest.setPhoneNumber(
+                requestDTO.getPhoneNumber());
+
+        existingRequest.setPropertyAddress(
+                requestDTO.getPropertyAddress());
+
+        existingRequest.setRenovationType(
+                requestDTO.getRenovationType());
+
+        existingRequest.setEstimatedBudget(
+                requestDTO.getEstimatedBudget());
+
+        /*
+         * Our current request DTO contains status.
+         * Therefore, PUT can update the status too.
+         */
+        existingRequest.setStatus(
+                requestDTO.getStatus());
+
+        RenovationRequest updatedRequest =
+                renovationRequestRepository.save(existingRequest);
+
+        return convertToResponseDTO(updatedRequest);
+    }
+
+    // DELETE
+    public void deleteRenovationRequest(Long id) {
+
+        /*
+         * Find the entity first.
+         * If it does not exist, findRenovationRequestById()
+         * throws an exception.
+         */
+        RenovationRequest request =
+                findRenovationRequestById(id);
+
+        renovationRequestRepository.delete(request);
+    }
+
+    // Reusable method for finding an entity
+    private RenovationRequest findRenovationRequestById(Long id) {
+
         return renovationRequestRepository.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException(
-                                "Renovation request not found"));
+                                "Renovation request not found with ID: "
+                                        + id));
     }
 
-    public RenovationRequest updateRenovationRequest(
-            Long id,
-            RenovationRequest updatedRequest) {
+    // Convert Entity to Response DTO
+    private RenovationResponseDTO convertToResponseDTO(
+            RenovationRequest request) {
 
-        RenovationRequest existingRequest =
-                renovationRequestRepository.findById(id)
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Renovation request not found"));
+        RenovationResponseDTO responseDTO =
+                new RenovationResponseDTO();
 
-        existingRequest.setCustomerName(
-                updatedRequest.getCustomerName());
+        responseDTO.setId(request.getId());
+        responseDTO.setCustomerName(request.getCustomerName());
+        responseDTO.setPhoneNumber(request.getPhoneNumber());
+        responseDTO.setPropertyAddress(
+                request.getPropertyAddress());
+        responseDTO.setRenovationType(
+                request.getRenovationType());
+        responseDTO.setEstimatedBudget(
+                request.getEstimatedBudget());
+        responseDTO.setStatus(request.getStatus());
 
-        existingRequest.setPhoneNumber(
-                updatedRequest.getPhoneNumber());
-
-        existingRequest.setPropertyAddress(
-                updatedRequest.getPropertyAddress());
-
-        existingRequest.setRenovationType(
-                updatedRequest.getRenovationType());
-
-        existingRequest.setEstimatedBudget(
-                updatedRequest.getEstimatedBudget());
-
-        existingRequest.setStatus(
-                updatedRequest.getStatus());
-
-        return renovationRequestRepository.save(existingRequest);
-    }
-
-    public void deleteRenovationRequest(Long id) {
-
-        if (!renovationRequestRepository.existsById(id)) {
-            throw new RuntimeException("Renovation request not found");
-        }
-
-        renovationRequestRepository.deleteById(id);
+        return responseDTO;
     }
 }
