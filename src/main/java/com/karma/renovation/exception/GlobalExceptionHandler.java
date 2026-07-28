@@ -1,5 +1,6 @@
 package com.karma.renovation.exception;
 
+import com.karma.renovation.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,8 +13,9 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // VALIDATION ERRORS
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>>
+    public ResponseEntity<ApiResponse<Map<String, String>>>
     handleValidationExceptions(
             MethodArgumentNotValidException exception) {
 
@@ -32,24 +34,33 @@ public class GlobalExceptionHandler {
                     errors.put(fieldName, errorMessage);
                 });
 
-        return new ResponseEntity<>(
-                errors,
-                HttpStatus.BAD_REQUEST
-        );
+        ApiResponse<Map<String, String>> response =
+                new ApiResponse<>(
+                        false,
+                        "Validation failed.",
+                        errors
+                );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
+    // RESOURCE NOT FOUND ERROR
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, String>>
+    public ResponseEntity<ApiResponse<Object>>
     handleResourceNotFoundException(
             ResourceNotFoundException exception) {
 
-        Map<String, String> error = new LinkedHashMap<>();
+        ApiResponse<Object> response =
+                new ApiResponse<>(
+                        false,
+                        exception.getMessage(),
+                        null
+                );
 
-        error.put("message", exception.getMessage());
-
-        return new ResponseEntity<>(
-                error,
-                HttpStatus.NOT_FOUND
-        );
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
     }
 }
