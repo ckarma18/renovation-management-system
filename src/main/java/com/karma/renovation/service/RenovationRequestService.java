@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
 
 @Service
 public class RenovationRequestService {
@@ -50,17 +51,30 @@ public class RenovationRequestService {
     }
 
     // READ ALL WITH PAGINATION
+    // READ ALL WITH PAGINATION AND SORTING
     public PaginationResponse<RenovationResponseDTO> getAllRenovationRequests(
             int page,
-            int size) {
+            int size,
+            String sortBy,
+            String sortDir) {
 
         logger.info(
-                "Fetching renovation requests - page: {}, size: {}",
+                "Fetching renovation requests - page: {}, size: {}, sortBy: {}, sortDir: {}",
                 page,
-                size
+                size,
+                sortBy,
+                sortDir
         );
 
-        Pageable pageable = PageRequest.of(page, size);
+        Sort sort;
+
+        if (sortDir.equalsIgnoreCase("desc")) {
+            sort = Sort.by(sortBy).descending();
+        } else {
+            sort = Sort.by(sortBy).ascending();
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
 
         Page<RenovationRequest> renovationPage =
                 renovationRequestRepository.findAll(pageable);

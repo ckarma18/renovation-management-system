@@ -40,18 +40,27 @@ public class RenovationRequestController {
                 .body(response);
     }
 
-    // READ ALL
-    // READ ALL WITH PAGINATION
+    // READ ALL WITH PAGINATION AND SORTING
     @GetMapping
-    public ResponseEntity<ApiResponse<PaginationResponse<RenovationResponseDTO>>> getAllRenovationRequests(
+    public ResponseEntity<ApiResponse<PaginationResponse<RenovationResponseDTO>>>
+    getAllRenovationRequests(
 
             @RequestParam(defaultValue = "0") int page,
 
-            @RequestParam(defaultValue = "5") int size
+            @RequestParam(defaultValue = "5") int size,
+
+            @RequestParam(defaultValue = "id") String sortBy,
+
+            @RequestParam(defaultValue = "asc") String sortDir
     ) {
 
         PaginationResponse<RenovationResponseDTO> requests =
-                renovationRequestService.getAllRenovationRequests(page, size);
+                renovationRequestService.getAllRenovationRequests(
+                        page,
+                        size,
+                        sortBy,
+                        sortDir
+                );
 
         ApiResponse<PaginationResponse<RenovationResponseDTO>> response =
                 new ApiResponse<>(
