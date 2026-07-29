@@ -5,12 +5,13 @@ import com.karma.renovation.dto.RenovationResponseDTO;
 import com.karma.renovation.entity.RenovationRequest;
 import com.karma.renovation.exception.ResourceNotFoundException;
 import com.karma.renovation.repository.RenovationRequestRepository;
+import com.karma.renovation.response.PaginationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class RenovationRequestService {
@@ -48,15 +49,36 @@ public class RenovationRequestService {
         return convertToResponseDTO(savedRequest);
     }
 
-    // READ ALL
-    public List<RenovationResponseDTO> getAllRenovationRequests() {
+    // READ ALL WITH PAGINATION
+    public PaginationResponse<RenovationResponseDTO> getAllRenovationRequests(
+            int page,
+            int size) {
 
-        logger.info("Fetching all renovation requests");
+        logger.info(
+                "Fetching renovation requests - page: {}, size: {}",
+                page,
+                size
+        );
 
-        return renovationRequestRepository.findAll()
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<RenovationRequest> renovationPage =
+                renovationRequestRepository.findAll(pageable);
+
+        var renovationDTOs = renovationPage.getContent()
                 .stream()
                 .map(this::convertToResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
+
+        return new PaginationResponse<>(
+                renovationDTOs,
+                renovationPage.getNumber(),
+                renovationPage.getSize(),
+                renovationPage.getTotalElements(),
+                renovationPage.getTotalPages(),
+                renovationPage.isFirst(),
+                renovationPage.isLast()
+        );
     }
 
     // READ BY ID

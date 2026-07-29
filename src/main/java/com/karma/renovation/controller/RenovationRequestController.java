@@ -3,13 +3,12 @@ package com.karma.renovation.controller;
 import com.karma.renovation.dto.RenovationRequestDTO;
 import com.karma.renovation.dto.RenovationResponseDTO;
 import com.karma.renovation.response.ApiResponse;
+import com.karma.renovation.response.PaginationResponse;
 import com.karma.renovation.service.RenovationRequestService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/renovations")
@@ -42,13 +41,19 @@ public class RenovationRequestController {
     }
 
     // READ ALL
+    // READ ALL WITH PAGINATION
     @GetMapping
-    public ResponseEntity<ApiResponse<List<RenovationResponseDTO>>> getAllRenovationRequests() {
+    public ResponseEntity<ApiResponse<PaginationResponse<RenovationResponseDTO>>> getAllRenovationRequests(
 
-        List<RenovationResponseDTO> requests =
-                renovationRequestService.getAllRenovationRequests();
+            @RequestParam(defaultValue = "0") int page,
 
-        ApiResponse<List<RenovationResponseDTO>> response =
+            @RequestParam(defaultValue = "5") int size
+    ) {
+
+        PaginationResponse<RenovationResponseDTO> requests =
+                renovationRequestService.getAllRenovationRequests(page, size);
+
+        ApiResponse<PaginationResponse<RenovationResponseDTO>> response =
                 new ApiResponse<>(
                         true,
                         "Renovation requests fetched successfully.",
