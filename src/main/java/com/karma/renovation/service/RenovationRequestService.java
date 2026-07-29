@@ -14,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
 
+import java.util.List;
+
 @Service
 public class RenovationRequestService {
 
@@ -50,7 +52,6 @@ public class RenovationRequestService {
         return convertToResponseDTO(savedRequest);
     }
 
-    // READ ALL WITH PAGINATION
     // READ ALL WITH PAGINATION AND SORTING
     public PaginationResponse<RenovationResponseDTO> getAllRenovationRequests(
             int page,
@@ -104,6 +105,23 @@ public class RenovationRequestService {
                 findRenovationRequestById(id);
 
         return convertToResponseDTO(renovationRequest);
+    }
+
+    // SEARCH BY CUSTOMER NAME
+    public List<RenovationResponseDTO> searchByCustomerName(String customerName) {
+
+        logger.info(
+                "Searching renovation requests by customer name: {}",
+                customerName
+        );
+
+        List<RenovationRequest> requests =
+                renovationRequestRepository
+                        .findByCustomerNameContainingIgnoreCase(customerName);
+
+        return requests.stream()
+                .map(this::convertToResponseDTO)
+                .toList();
     }
 
     // UPDATE

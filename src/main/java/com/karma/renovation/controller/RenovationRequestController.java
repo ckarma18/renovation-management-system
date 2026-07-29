@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/renovations")
 public class RenovationRequestController {
@@ -104,6 +106,24 @@ public class RenovationRequestController {
                         true,
                         "Renovation request updated successfully.",
                         updatedRequest
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    // SEARCH BY CUSTOMER NAME
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<RenovationResponseDTO>>>
+    searchByCustomerName(@RequestParam String customerName) {
+
+        List<RenovationResponseDTO> requests =
+                renovationRequestService.searchByCustomerName(customerName);
+
+        ApiResponse<List<RenovationResponseDTO>> response =
+                new ApiResponse<>(
+                        true,
+                        "Renovation requests searched successfully.",
+                        requests
                 );
 
         return ResponseEntity.ok(response);
