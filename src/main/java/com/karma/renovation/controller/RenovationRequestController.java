@@ -8,6 +8,7 @@ import com.karma.renovation.service.RenovationRequestService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -130,6 +131,7 @@ public class RenovationRequestController {
     }
 
     // DELETE
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteRenovationRequest(
             @PathVariable Long id) {

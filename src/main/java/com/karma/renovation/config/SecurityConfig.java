@@ -1,19 +1,32 @@
 package com.karma.renovation.config;
 
+import com.karma.renovation.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
+@EnableMethodSecurity
 @Configuration
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter
+    ) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -21,49 +34,67 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
+                // REST API using JWT, so CSRF is disabled
                 .csrf(csrf -> csrf.disable())
+
+                // Do not create or use login sessions
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Swagger documentation is public
+                        // Swagger is public
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // ADMIN and CUSTOMER can read renovation data
+                        // Registration and login are public
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/auth/register",
+                                "/api/auth/login"
+                        ).permitAll()
+
+                        // ADMIN and CUSTOMER can read renovations
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/renovations",
                                 "/api/renovations/**"
                         ).hasAnyRole("ADMIN", "CUSTOMER")
 
-                        // ADMIN and CUSTOMER can create bookings
+                        // ADMIN and CUSTOMER can create
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/renovations",
                                 "/api/bookings"
                         ).hasAnyRole("ADMIN", "CUSTOMER")
 
-                        // Only ADMIN can update renovations
+                        // Only ADMIN can update
                         .requestMatchers(
                                 HttpMethod.PUT,
                                 "/api/renovations/**"
                         ).hasRole("ADMIN")
 
-                        // Only ADMIN can delete renovations
+                        // Only ADMIN can delete
                         .requestMatchers(
                                 HttpMethod.DELETE,
                                 "/api/renovations/**"
                         ).hasRole("ADMIN")
 
-                        // Any other request requires authentication
+                        // Any other endpoint requires authentication
                         .anyRequest().authenticated()
                 )
 
-                .httpBasic(httpBasic -> {
-                });
+                // Run JWT filter before Spring username/password filter
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                );
 
         return http.build();
     }
@@ -74,25 +105,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(
+    public AuthenticationManager authenticationManager(
+            UserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder
     ) {
 
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode("admin123"))
-                .roles("ADMIN")
-                .build();
+        DaoAuthenticationProvider authenticationProvider =
+                new DaoAuthenticationProvider(userDetailsService);
 
-        UserDetails customer = User.builder()
-                .username("customer")
-                .password(passwordEncoder.encode("customer123"))
-                .roles("CUSTOMER")
-                .build();
+        authenticationProvider.setPasswordEncoder(passwordEncoder);
 
-        return new InMemoryUserDetailsManager(
-                admin,
-                customer
-        );
+        return new ProviderManager(authenticationProvider);
     }
 }
