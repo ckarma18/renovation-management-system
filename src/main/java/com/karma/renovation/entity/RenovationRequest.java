@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
 
 @Getter
 @Setter
@@ -36,4 +38,10 @@ public class RenovationRequest {
     private Double estimatedBudget;
 
     private String status;
+
+    @ManyToOne
+    @JoinColumn(
+            name = "user_id"
+    )
+    private AppUser user;
 }

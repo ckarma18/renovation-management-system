@@ -2,8 +2,10 @@ package com.karma.renovation.service;
 
 import com.karma.renovation.dto.RenovationRequestDTO;
 import com.karma.renovation.dto.RenovationResponseDTO;
+import com.karma.renovation.entity.AppUser;
 import com.karma.renovation.entity.RenovationRequest;
 import com.karma.renovation.exception.ResourceNotFoundException;
+import com.karma.renovation.repository.AppUserRepository;
 import com.karma.renovation.repository.RenovationRequestRepository;
 import com.karma.renovation.response.PaginationResponse;
 import org.slf4j.Logger;
@@ -11,8 +13,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -23,16 +27,35 @@ public class RenovationRequestService {
             LoggerFactory.getLogger(RenovationRequestService.class);
 
     private final RenovationRequestRepository renovationRequestRepository;
+    private final AppUserRepository appUserRepository;
 
-    public RenovationRequestService(RenovationRequestRepository renovationRequestRepository) {
+    public RenovationRequestService(
+            RenovationRequestRepository renovationRequestRepository,
+            AppUserRepository appUserRepository
+    ) {
         this.renovationRequestRepository = renovationRequestRepository;
+        this.appUserRepository = appUserRepository;
     }
 
     // CREATE
-    public RenovationResponseDTO createRenovationRequest(RenovationRequestDTO requestDTO) {
+    public RenovationResponseDTO createRenovationRequest(
+            RenovationRequestDTO requestDTO
+    ) {
 
-        logger.info("Creating renovation request for customer: {}",
-                requestDTO.getCustomerName());
+        String username = getAuthenticatedUsername();
+
+        AppUser appUser = appUserRepository
+                .findByUsername(username)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Authenticated user not found: " + username
+                        )
+                );
+
+        logger.info(
+                "Creating renovation request for authenticated user: {}",
+                username
+        );
 
         RenovationRequest renovationRequest = new RenovationRequest();
 
@@ -43,11 +66,17 @@ public class RenovationRequestService {
         renovationRequest.setEstimatedBudget(requestDTO.getEstimatedBudget());
         renovationRequest.setStatus(requestDTO.getStatus());
 
+        // Link this request to the logged-in user
+        renovationRequest.setUser(appUser);
+
         RenovationRequest savedRequest =
                 renovationRequestRepository.save(renovationRequest);
 
-        logger.info("Renovation request created successfully with ID: {}",
-                savedRequest.getId());
+        logger.info(
+                "Renovation request created successfully with ID: {} for user: {}",
+                savedRequest.getId(),
+                username
+        );
 
         return convertToResponseDTO(savedRequest);
     }
@@ -57,7 +86,8 @@ public class RenovationRequestService {
             int page,
             int size,
             String sortBy,
-            String sortDir) {
+            String sortDir
+    ) {
 
         logger.info(
                 "Fetching renovation requests - page: {}, size: {}, sortBy: {}, sortDir: {}",
@@ -108,7 +138,9 @@ public class RenovationRequestService {
     }
 
     // SEARCH BY CUSTOMER NAME
-    public List<RenovationResponseDTO> searchByCustomerName(String customerName) {
+    public List<RenovationResponseDTO> searchByCustomerName(
+            String customerName
+    ) {
 
         logger.info(
                 "Searching renovation requests by customer name: {}",
@@ -127,7 +159,8 @@ public class RenovationRequestService {
     // UPDATE
     public RenovationResponseDTO updateRenovationRequest(
             Long id,
-            RenovationRequestDTO requestDTO) {
+            RenovationRequestDTO requestDTO
+    ) {
 
         logger.info("Updating renovation request with ID: {}", id);
 
@@ -144,8 +177,10 @@ public class RenovationRequestService {
         RenovationRequest updatedRequest =
                 renovationRequestRepository.save(renovationRequest);
 
-        logger.info("Renovation request updated successfully with ID: {}",
-                updatedRequest.getId());
+        logger.info(
+                "Renovation request updated successfully with ID: {}",
+                updatedRequest.getId()
+        );
 
         return convertToResponseDTO(updatedRequest);
     }
@@ -160,7 +195,10 @@ public class RenovationRequestService {
 
         renovationRequestRepository.delete(renovationRequest);
 
-        logger.info("Renovation request deleted successfully with ID: {}", id);
+        logger.info(
+                "Renovation request deleted successfully with ID: {}",
+                id
+        );
     }
 
     // Helper Method
@@ -169,27 +207,85 @@ public class RenovationRequestService {
         return renovationRequestRepository.findById(id)
                 .orElseThrow(() -> {
 
-                    logger.error("Renovation request not found with ID: {}", id);
+                    logger.error(
+                            "Renovation request not found with ID: {}",
+                            id
+                    );
 
                     return new ResourceNotFoundException(
-                            "Renovation request not found with ID: " + id);
+                            "Renovation request not found with ID: " + id
+                    );
                 });
+    }
+
+    // Get logged-in username from Spring Security
+    private String getAuthenticatedUsername() {
+
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+
+            throw new IllegalStateException(
+                    "No authenticated user found"
+            );
+        }
+
+        return authentication.getName();
     }
 
     // Entity -> Response DTO
     private RenovationResponseDTO convertToResponseDTO(
-            RenovationRequest renovationRequest) {
+            RenovationRequest renovationRequest
+    ) {
 
-        RenovationResponseDTO responseDTO = new RenovationResponseDTO();
+        RenovationResponseDTO responseDTO =
+                new RenovationResponseDTO();
 
         responseDTO.setId(renovationRequest.getId());
-        responseDTO.setCustomerName(renovationRequest.getCustomerName());
-        responseDTO.setPhoneNumber(renovationRequest.getPhoneNumber());
-        responseDTO.setPropertyAddress(renovationRequest.getPropertyAddress());
-        responseDTO.setRenovationType(renovationRequest.getRenovationType());
-        responseDTO.setEstimatedBudget(renovationRequest.getEstimatedBudget());
-        responseDTO.setStatus(renovationRequest.getStatus());
+        responseDTO.setCustomerName(
+                renovationRequest.getCustomerName()
+        );
+        responseDTO.setPhoneNumber(
+                renovationRequest.getPhoneNumber()
+        );
+        responseDTO.setPropertyAddress(
+                renovationRequest.getPropertyAddress()
+        );
+        responseDTO.setRenovationType(
+                renovationRequest.getRenovationType()
+        );
+        responseDTO.setEstimatedBudget(
+                renovationRequest.getEstimatedBudget()
+        );
+        responseDTO.setStatus(
+                renovationRequest.getStatus()
+        );
 
         return responseDTO;
+    }
+
+    public List<RenovationResponseDTO> getMyRenovationRequests() {
+
+        String username = getAuthenticatedUsername();
+
+        AppUser appUser = appUserRepository
+                .findByUsername(username)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Authenticated user not found: " + username
+                        )
+                );
+
+        List<RenovationRequest> requests =
+                renovationRequestRepository.findByUser(appUser);
+
+        return requests.stream()
+                .map(this::convertToResponseDTO)
+                .toList();
     }
 }

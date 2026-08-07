@@ -19,17 +19,23 @@ public class RenovationRequestController {
 
     private final RenovationRequestService renovationRequestService;
 
-    public RenovationRequestController(RenovationRequestService renovationRequestService) {
+    public RenovationRequestController(
+            RenovationRequestService renovationRequestService
+    ) {
         this.renovationRequestService = renovationRequestService;
     }
 
     // CREATE
+    // ADMIN and CUSTOMER can create based on SecurityConfig
     @PostMapping
-    public ResponseEntity<ApiResponse<RenovationResponseDTO>> createRenovationRequest(
-            @Valid @RequestBody RenovationRequestDTO requestDTO) {
+    public ResponseEntity<ApiResponse<RenovationResponseDTO>>
+    createRenovationRequest(
+            @Valid @RequestBody RenovationRequestDTO requestDTO
+    ) {
 
         RenovationResponseDTO createdRequest =
-                renovationRequestService.createRenovationRequest(requestDTO);
+                renovationRequestService
+                        .createRenovationRequest(requestDTO);
 
         ApiResponse<RenovationResponseDTO> response =
                 new ApiResponse<>(
@@ -43,9 +49,12 @@ public class RenovationRequestController {
                 .body(response);
     }
 
-    // READ ALL WITH PAGINATION AND SORTING
+    // READ ALL
+    // ADMIN ONLY
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<ApiResponse<PaginationResponse<RenovationResponseDTO>>>
+    public ResponseEntity<
+            ApiResponse<PaginationResponse<RenovationResponseDTO>>>
     getAllRenovationRequests(
 
             @RequestParam(defaultValue = "0") int page,
@@ -58,14 +67,17 @@ public class RenovationRequestController {
     ) {
 
         PaginationResponse<RenovationResponseDTO> requests =
-                renovationRequestService.getAllRenovationRequests(
-                        page,
-                        size,
-                        sortBy,
-                        sortDir
-                );
+                renovationRequestService
+                        .getAllRenovationRequests(
+                                page,
+                                size,
+                                sortBy,
+                                sortDir
+                        );
 
-        ApiResponse<PaginationResponse<RenovationResponseDTO>> response =
+        ApiResponse<
+                PaginationResponse<RenovationResponseDTO>>
+                response =
                 new ApiResponse<>(
                         true,
                         "Renovation requests fetched successfully.",
@@ -75,13 +87,62 @@ public class RenovationRequestController {
         return ResponseEntity.ok(response);
     }
 
+    // READ MY REQUESTS
+    // CUSTOMER ONLY
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @GetMapping("/my")
+    public ResponseEntity<
+            ApiResponse<List<RenovationResponseDTO>>>
+    getMyRenovationRequests() {
+
+        List<RenovationResponseDTO> requests =
+                renovationRequestService
+                        .getMyRenovationRequests();
+
+        ApiResponse<List<RenovationResponseDTO>> response =
+                new ApiResponse<>(
+                        true,
+                        "My renovation requests fetched successfully.",
+                        requests
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    // SEARCH BY CUSTOMER NAME
+    // ADMIN ONLY
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/search")
+    public ResponseEntity<
+            ApiResponse<List<RenovationResponseDTO>>>
+    searchByCustomerName(
+            @RequestParam String customerName
+    ) {
+
+        List<RenovationResponseDTO> requests =
+                renovationRequestService
+                        .searchByCustomerName(customerName);
+
+        ApiResponse<List<RenovationResponseDTO>> response =
+                new ApiResponse<>(
+                        true,
+                        "Renovation requests searched successfully.",
+                        requests
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
     // READ BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<RenovationResponseDTO>> getRenovationRequestById(
-            @PathVariable Long id) {
+    public ResponseEntity<ApiResponse<RenovationResponseDTO>>
+    getRenovationRequestById(
+            @PathVariable Long id
+    ) {
 
         RenovationResponseDTO responseDTO =
-                renovationRequestService.getRenovationRequestById(id);
+                renovationRequestService
+                        .getRenovationRequestById(id);
 
         ApiResponse<RenovationResponseDTO> response =
                 new ApiResponse<>(
@@ -94,13 +155,21 @@ public class RenovationRequestController {
     }
 
     // UPDATE
+    // ADMIN ONLY
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<RenovationResponseDTO>> updateRenovationRequest(
+    public ResponseEntity<ApiResponse<RenovationResponseDTO>>
+    updateRenovationRequest(
             @PathVariable Long id,
-            @Valid @RequestBody RenovationRequestDTO requestDTO) {
+            @Valid @RequestBody RenovationRequestDTO requestDTO
+    ) {
 
         RenovationResponseDTO updatedRequest =
-                renovationRequestService.updateRenovationRequest(id, requestDTO);
+                renovationRequestService
+                        .updateRenovationRequest(
+                                id,
+                                requestDTO
+                        );
 
         ApiResponse<RenovationResponseDTO> response =
                 new ApiResponse<>(
@@ -112,31 +181,17 @@ public class RenovationRequestController {
         return ResponseEntity.ok(response);
     }
 
-    // SEARCH BY CUSTOMER NAME
-    @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<RenovationResponseDTO>>>
-    searchByCustomerName(@RequestParam String customerName) {
-
-        List<RenovationResponseDTO> requests =
-                renovationRequestService.searchByCustomerName(customerName);
-
-        ApiResponse<List<RenovationResponseDTO>> response =
-                new ApiResponse<>(
-                        true,
-                        "Renovation requests searched successfully.",
-                        requests
-                );
-
-        return ResponseEntity.ok(response);
-    }
-
     // DELETE
+    // ADMIN ONLY
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> deleteRenovationRequest(
-            @PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>>
+    deleteRenovationRequest(
+            @PathVariable Long id
+    ) {
 
-        renovationRequestService.deleteRenovationRequest(id);
+        renovationRequestService
+                .deleteRenovationRequest(id);
 
         ApiResponse<String> response =
                 new ApiResponse<>(
