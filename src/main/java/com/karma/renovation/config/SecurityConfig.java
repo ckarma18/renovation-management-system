@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,7 +15,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @EnableMethodSecurity
 @Configuration
@@ -34,10 +34,8 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-                // REST API using JWT, so CSRF is disabled
                 .csrf(csrf -> csrf.disable())
 
-                // Do not create or use login sessions
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
@@ -53,44 +51,70 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // Registration and login are public
+                        // Login and registration are public
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/auth/register",
                                 "/api/auth/login"
                         ).permitAll()
 
-                        // ADMIN and CUSTOMER can read renovations
+                        // CUSTOMER - own renovation requests
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/renovations/my"
+                        ).hasRole("CUSTOMER")
+
+                        // ADMIN and CUSTOMER can access renovation GET endpoints.
+                        // Controller @PreAuthorize gives more specific restrictions.
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/renovations",
                                 "/api/renovations/**"
                         ).hasAnyRole("ADMIN", "CUSTOMER")
 
-                        // ADMIN and CUSTOMER can create
+                        // ADMIN and CUSTOMER can create renovation requests
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/api/renovations",
-                                "/api/bookings"
+                                "/api/renovations"
                         ).hasAnyRole("ADMIN", "CUSTOMER")
 
-                        // Only ADMIN can update
+                        // CUSTOMER - own bookings
+                        // IMPORTANT: this must come BEFORE /api/bookings/**
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/bookings/my"
+                        ).hasRole("CUSTOMER")
+
+                        // ADMIN - view all bookings / booking by ID
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/bookings",
+                                "/api/bookings/**"
+                        ).hasRole("ADMIN")
+
+                        // ADMIN - create booking
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/bookings"
+                        ).hasRole("ADMIN")
+
+                        // ADMIN - update renovations
                         .requestMatchers(
                                 HttpMethod.PUT,
                                 "/api/renovations/**"
                         ).hasRole("ADMIN")
 
-                        // Only ADMIN can delete
+                        // ADMIN - delete renovations and bookings
                         .requestMatchers(
                                 HttpMethod.DELETE,
-                                "/api/renovations/**"
+                                "/api/renovations/**",
+                                "/api/bookings/**"
                         ).hasRole("ADMIN")
 
-                        // Any other endpoint requires authentication
+                        // Anything else requires authentication
                         .anyRequest().authenticated()
                 )
 
-                // Run JWT filter before Spring username/password filter
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

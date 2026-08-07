@@ -1,28 +1,26 @@
 package com.karma.renovation.dto;
 
-import com.karma.renovation.entity.Notification;
-import com.karma.renovation.entity.Payment;
-import com.karma.renovation.entity.RenovationRequest;
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class BookingRequestDTO {
 
-    @Valid
-    @NotNull(message = "Renovation request is required")
-    private RenovationRequest renovationRequest;
+    @NotNull(message = "Booking date is required")
+    @FutureOrPresent(message = "Booking date cannot be in the past")
+    private LocalDate bookingDate;
 
-    @Valid
-    @NotNull(message = "Payment information is required")
-    private Payment payment;
+    @NotNull(message = "Booking time is required")
+    private LocalTime bookingTime;
 
-    @Valid
-    @NotNull(message = "Notification information is required")
-    private Notification notification;
+    @NotNull(message = "Renovation request ID is required")
+    private Long renovationRequestId;
 }
