@@ -64,6 +64,43 @@ public class SecurityConfig {
                                 "/api/renovations/my"
                         ).hasRole("CUSTOMER")
 
+                                // CUSTOMER - create payment
+                                .requestMatchers(
+                                        HttpMethod.POST,
+                                        "/api/payments"
+                                ).hasRole("CUSTOMER")
+
+                                // CUSTOMER - view own payments
+                                .requestMatchers(
+                                        HttpMethod.GET,
+                                        "/api/payments/my"
+                                ).hasRole("CUSTOMER")
+
+                                 // ADMIN - view payments
+                                .requestMatchers(
+                                        HttpMethod.GET,
+                                        "/api/payments",
+                                        "/api/payments/**"
+                                ).hasRole("ADMIN")
+
+                                // ADMIN - delete payment
+                                .requestMatchers(
+                                        HttpMethod.DELETE,
+                                        "/api/payments/**"
+                                ).hasRole("ADMIN")
+
+                                // CUSTOMER - view own notifications
+                                .requestMatchers(
+                                        HttpMethod.GET,
+                                        "/api/notifications/my"
+                                ).hasRole("CUSTOMER")
+
+                               // CUSTOMER - mark own notification as read
+                                .requestMatchers(
+                                        HttpMethod.PATCH,
+                                        "/api/notifications/**"
+                                ).hasRole("CUSTOMER")
+
                         // ADMIN and CUSTOMER can access renovation GET endpoints.
                         // Controller @PreAuthorize gives more specific restrictions.
                         .requestMatchers(

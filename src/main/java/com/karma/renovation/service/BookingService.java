@@ -16,13 +16,16 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final RenovationRequestRepository renovationRequestRepository;
+    private final NotificationService notificationService;
 
     public BookingService(
             BookingRepository bookingRepository,
-            RenovationRequestRepository renovationRequestRepository
+            RenovationRequestRepository renovationRequestRepository,
+            NotificationService notificationService
     ) {
         this.bookingRepository = bookingRepository;
         this.renovationRequestRepository = renovationRequestRepository;
+        this.notificationService = notificationService;
     }
 
     // CREATE BOOKING
@@ -40,6 +43,7 @@ public class BookingService {
                                 )
                         );
 
+        // Prevent duplicate booking for same renovation request
         if (bookingRepository
                 .findByRenovationRequest(renovationRequest)
                 .isPresent()) {
@@ -68,10 +72,26 @@ public class BookingService {
         Booking savedBooking =
                 bookingRepository.save(booking);
 
+        // CREATE NOTIFICATION FOR CUSTOMER
+        String username =
+                renovationRequest
+                        .getUser()
+                        .getUsername();
+
+        notificationService.createNotification(
+                username,
+                "Booking Scheduled",
+                "Your renovation booking has been scheduled for "
+                        + savedBooking.getBookingDate()
+                        + " at "
+                        + savedBooking.getBookingTime()
+                        + "."
+        );
+
         return convertToResponseDTO(savedBooking);
     }
 
-    // READ ALL
+    // READ ALL BOOKINGS
     public List<BookingResponseDTO> getAllBookings() {
 
         return bookingRepository
@@ -81,8 +101,10 @@ public class BookingService {
                 .toList();
     }
 
-    // READ BY ID
-    public BookingResponseDTO getBookingById(Long id) {
+    // READ BOOKING BY ID
+    public BookingResponseDTO getBookingById(
+            Long id
+    ) {
 
         Booking booking =
                 findBookingById(id);
@@ -90,8 +112,24 @@ public class BookingService {
         return convertToResponseDTO(booking);
     }
 
-    // DELETE
-    public void deleteBooking(Long id) {
+    // CUSTOMER - READ OWN BOOKINGS
+    public List<BookingResponseDTO> getMyBookings(
+            String username
+    ) {
+
+        return bookingRepository
+                .findByRenovationRequest_User_Username(
+                        username
+                )
+                .stream()
+                .map(this::convertToResponseDTO)
+                .toList();
+    }
+
+    // DELETE BOOKING
+    public void deleteBooking(
+            Long id
+    ) {
 
         Booking booking =
                 findBookingById(id);
@@ -99,8 +137,10 @@ public class BookingService {
         bookingRepository.delete(booking);
     }
 
-    // HELPER
-    private Booking findBookingById(Long id) {
+    // HELPER - FIND BOOKING BY ID
+    private Booking findBookingById(
+            Long id
+    ) {
 
         return bookingRepository
                 .findById(id)
@@ -109,17 +149,6 @@ public class BookingService {
                                 "Booking not found with ID: " + id
                         )
                 );
-    }
-
-    public List<BookingResponseDTO> getMyBookings(
-            String username
-    ) {
-
-        return bookingRepository
-                .findByRenovationRequest_User_Username(username)
-                .stream()
-                .map(this::convertToResponseDTO)
-                .toList();
     }
 
     // ENTITY -> RESPONSE DTO
