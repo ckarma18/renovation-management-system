@@ -1,13 +1,20 @@
-import { Link } from 'react-router-dom'
+import Navbar from '../components/Navbar'
+import Hero from '../components/Hero'
+import Services from '../components/Services'
+import HowItWorks from '../components/HowItWorks'
+import Projects from '../components/Projects'
+import WhyChooseUs from '../components/WhyChooseUs'
 
 function Home() {
     return (
-        <div>
-            <h1>Renovation Management System</h1>
-            <p>Transform your space into something extraordinary.</p>
-
-            <Link to="/login">Go to Login</Link>
-        </div>
+        <>
+            <Navbar />
+            <Hero />
+            <Services />
+            <HowItWorks />
+            <Projects />
+            <WhyChooseUs />
+        </>
     )
 }
 
