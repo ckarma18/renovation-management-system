@@ -1,17 +1,14 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import api from '../api/axios'
 
-function Login() {
-    const navigate = useNavigate()
-
+function Register() {
     const [formData, setFormData] = useState({
+        fullName: '',
         username: '',
+        email: '',
         password: '',
     })
-
-    const [loading, setLoading] = useState(false)
-    const [errorMessage, setErrorMessage] = useState('')
 
     const handleChange = (event) => {
         const { name, value } = event.target
@@ -26,35 +23,36 @@ function Login() {
         event.preventDefault()
 
         setLoading(true)
+        setSuccessMessage('')
         setErrorMessage('')
 
         try {
-            const response = await api.post('/api/auth/login', formData)
+            const response = await api.post('/api/auth/register', formData)
 
-            const loginData = response.data.data
+            setSuccessMessage(response.data.message)
 
-            localStorage.setItem('token', loginData.token)
-            localStorage.setItem('tokenType', loginData.tokenType)
-            localStorage.setItem('username', loginData.username)
-            localStorage.setItem('role', loginData.role)
-
-            if (loginData.role === 'ADMIN') {
-                navigate('/admin/dashboard')
-            } else if (loginData.role === 'CUSTOMER') {
-                navigate('/customer/dashboard')
-            }
+            setFormData({
+                fullName: '',
+                username: '',
+                email: '',
+                password: '',
+            })
         } catch (error) {
             console.error(error)
 
             if (error.response?.data?.message) {
                 setErrorMessage(error.response.data.message)
             } else {
-                setErrorMessage('Login failed. Please check your username and password.')
+                setErrorMessage('Registration failed. Please try again.')
             }
         } finally {
             setLoading(false)
         }
     }
+
+    const [loading, setLoading] = useState(false)
+    const [successMessage, setSuccessMessage] = useState('')
+    const [errorMessage, setErrorMessage] = useState('')
 
     return (
         <div className="auth-page">
@@ -65,16 +63,16 @@ function Login() {
                 </Link>
 
                 <div className="auth-left-content">
-                    <p className="auth-label">WELCOME BACK</p>
+                    <p className="auth-label">START YOUR PROJECT</p>
 
                     <h1>
-                        Manage your renovation.
-                        <span> Stay in control.</span>
+                        Create your account.
+                        <span> Transform your space.</span>
                     </h1>
 
                     <p>
-                        View renovation requests, bookings, payments, project updates,
-                        and notifications from your account.
+                        Plan and manage your renovation journey from request
+                        to completion.
                     </p>
                 </div>
             </div>
@@ -88,15 +86,42 @@ function Login() {
                     </Link>
 
                     <div className="auth-heading">
-                        <p>WELCOME BACK</p>
-                        <h2>Login</h2>
-
+                        <p>GET STARTED</p>
+                        <h2>Create Account</h2>
                         <span>
-              Enter your username and password to continue.
+              Enter your information to create your RENOVA account.
             </span>
                     </div>
 
                     <form onSubmit={handleSubmit} className="auth-form">
+
+                        <div className="form-group">
+                            <label htmlFor="name">Full Name</label>
+
+                            <input
+                                id="name"
+                                type="text"
+                                name="fullName"
+                                placeholder="Enter your full name"
+                                value={formData.fullName}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="email">Email Address</label>
+
+                            <input
+                                id="email"
+                                type="email"
+                                name="email"
+                                placeholder="Enter your email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
 
                         <div className="form-group">
                             <label htmlFor="username">Username</label>
@@ -105,7 +130,7 @@ function Login() {
                                 id="username"
                                 type="text"
                                 name="username"
-                                placeholder="Enter your username"
+                                placeholder="Choose a username"
                                 value={formData.username}
                                 onChange={handleChange}
                                 required
@@ -119,12 +144,19 @@ function Login() {
                                 id="password"
                                 type="password"
                                 name="password"
-                                placeholder="Enter your password"
+                                placeholder="Create a password"
                                 value={formData.password}
                                 onChange={handleChange}
+                                minLength="8"
                                 required
                             />
                         </div>
+
+                        {successMessage && (
+                            <div className="success-message">
+                                {successMessage}
+                            </div>
+                        )}
 
                         {errorMessage && (
                             <div className="error-message">
@@ -137,23 +169,24 @@ function Login() {
                             className="auth-button"
                             disabled={loading}
                         >
-                            {loading ? 'Logging in...' : 'Login'}
-
+                            {loading ? 'Creating Account...' : 'Create Account'}
                             {!loading && <span>→</span>}
                         </button>
 
                     </form>
 
                     <p className="auth-switch">
-                        Don't have an account?
-                        <Link to="/register"> Create Account</Link>
+                        Already have an account?
+                        <Link to="/login"> Login</Link>
                     </p>
 
                 </div>
             </div>
 
+
+
         </div>
     )
 }
 
-export default Login
+export default Register
