@@ -30,11 +30,15 @@ public class PaymentController {
     @PostMapping
     public ResponseEntity<ApiResponse<PaymentResponseDTO>>
     createPayment(
-            @Valid @RequestBody PaymentRequestDTO requestDTO
+            @Valid @RequestBody PaymentRequestDTO requestDTO,
+            Authentication authentication
     ) {
 
         PaymentResponseDTO createdPayment =
-                paymentService.createPayment(requestDTO);
+                paymentService.createPayment(
+                        requestDTO,
+                        authentication.getName()
+                );
 
         ApiResponse<PaymentResponseDTO> response =
                 new ApiResponse<>(

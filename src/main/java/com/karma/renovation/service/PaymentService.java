@@ -9,7 +9,6 @@ import com.karma.renovation.repository.BookingRepository;
 import com.karma.renovation.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,7 +31,8 @@ public class PaymentService {
 
     // CREATE PAYMENT
     public PaymentResponseDTO createPayment(
-            PaymentRequestDTO requestDTO
+            PaymentRequestDTO requestDTO,
+            String authenticatedUsername
     ) {
 
         Booking booking = bookingRepository
@@ -44,6 +44,22 @@ public class PaymentService {
                         )
                 );
 
+        // SECURITY:
+        // Customer can only pay for their own booking.
+        String bookingOwnerUsername =
+                booking
+                        .getRenovationRequest()
+                        .getUser()
+                        .getUsername();
+
+        if (!bookingOwnerUsername.equals(authenticatedUsername)) {
+
+            throw new IllegalArgumentException(
+                    "You are not allowed to pay for this booking"
+            );
+        }
+
+        // Prevent duplicate payment for same booking.
         if (paymentRepository
                 .findByBooking(booking)
                 .isPresent()) {
@@ -76,13 +92,9 @@ public class PaymentService {
         Payment savedPayment =
                 paymentRepository.save(payment);
 
-        String username = booking
-                .getRenovationRequest()
-                .getUser()
-                .getUsername();
-
+        // Create notification for the customer.
         notificationService.createNotification(
-                username,
+                authenticatedUsername,
                 "Payment Successful",
                 "Your payment of Rs. "
                         + savedPayment.getAmount()
@@ -103,7 +115,9 @@ public class PaymentService {
     }
 
     // READ PAYMENT BY ID
-    public PaymentResponseDTO getPaymentById(Long id) {
+    public PaymentResponseDTO getPaymentById(
+            Long id
+    ) {
 
         Payment payment =
                 findPaymentById(id);
@@ -126,7 +140,9 @@ public class PaymentService {
     }
 
     // DELETE PAYMENT
-    public void deletePayment(Long id) {
+    public void deletePayment(
+            Long id
+    ) {
 
         Payment payment =
                 findPaymentById(id);
@@ -134,8 +150,10 @@ public class PaymentService {
         paymentRepository.delete(payment);
     }
 
-    // HELPER
-    private Payment findPaymentById(Long id) {
+    // HELPER - FIND PAYMENT BY ID
+    private Payment findPaymentById(
+            Long id
+    ) {
 
         return paymentRepository
                 .findById(id)
@@ -175,7 +193,9 @@ public class PaymentService {
         );
 
         responseDTO.setBookingId(
-                payment.getBooking().getId()
+                payment
+                        .getBooking()
+                        .getId()
         );
 
         responseDTO.setRenovationRequestId(
