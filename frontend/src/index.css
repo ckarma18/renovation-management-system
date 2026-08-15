@@ -2037,3 +2037,69 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+/* 404 PAGE */
+
+.not-found-page {
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 30px;
+
+  background: #f4f1eb;
+}
+
+.not-found-content {
+  max-width: 650px;
+  text-align: center;
+}
+
+.not-found-content h1 {
+  margin: 10px 0 20px;
+
+  font-size: clamp(45px, 7vw, 80px);
+  line-height: 1;
+}
+
+.not-found-content > p:not(.dashboard-label) {
+  margin: 0 auto 30px;
+
+  max-width: 500px;
+
+  color: #716c66;
+  line-height: 1.7;
+}
+
+.not-found-content .dashboard-primary-button {
+  display: inline-block;
+}
+
+/* RENOVATION DESCRIPTION */
+
+.renovation-description {
+  margin-top: 22px;
+  padding-top: 18px;
+
+  border-top: 1px solid #eee7de;
+}
+
+.renovation-description span {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #81776d;
+
+  font-size: 13px;
+}
+
+.renovation-description p {
+  margin: 0;
+
+  color: #211e1b;
+
+  line-height: 1.7;
+}

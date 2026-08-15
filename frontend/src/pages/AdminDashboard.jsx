@@ -81,9 +81,8 @@ function AdminDashboard() {
                 renovation.status?.toUpperCase()
 
             return (
-                status !== 'COMPLETED' &&
-                status !== 'CANCELLED' &&
-                status !== 'REJECTED'
+                status === 'APPROVED' ||
+                status === 'IN_PROGRESS'
             )
         }).length
 

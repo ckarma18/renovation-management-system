@@ -13,6 +13,7 @@ import AdminBookings from './pages/AdminBookings'
 import CustomerNotifications from './pages/CustomerNotifications'
 import CustomerPayments from './pages/CustomerPayments'
 import AdminPayments from './pages/AdminPayments'
+import NotFound from './pages/NotFound'
 
 function App() {
     return (
@@ -112,6 +113,8 @@ function App() {
                     </ProtectedRoute>
                 }
             />
+
+            <Route path="*" element={<NotFound />} />
         </Routes>
     )
 }

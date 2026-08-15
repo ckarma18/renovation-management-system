@@ -75,18 +75,16 @@ function CustomerDashboard() {
      * Active renovation:
      * anything that is not finished/cancelled/rejected.
      */
-    const activeRenovations = renovations.filter(
-        (renovation) => {
+    const activeRenovations =
+        renovations.filter((renovation) => {
             const status =
                 renovation.status?.toUpperCase()
 
             return (
-                status !== 'COMPLETED' &&
-                status !== 'CANCELLED' &&
-                status !== 'REJECTED'
+                status === 'APPROVED' ||
+                status === 'IN_PROGRESS'
             )
-        }
-    ).length
+        }).length
 
     /*
      * Upcoming booking:

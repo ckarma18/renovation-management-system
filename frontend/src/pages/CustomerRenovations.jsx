@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import DashboardSidebar from '../components/dashboard/DashboardSidebar'
 import api from '../api/axios'
 
-
 function CustomerRenovations() {
 
     const navigate = useNavigate()
@@ -20,15 +19,19 @@ function CustomerRenovations() {
 
                 const response = await api.get('/api/renovations/my')
 
-                console.log('Renovation response:', response.data)
-
                 setRenovations(response.data.data || [])
 
             } catch (err) {
 
                 console.error('Failed to load renovations:', err)
 
-                setError('Unable to load your renovation requests.')
+                if (err.response?.data?.message) {
+                    setError(err.response.data.message)
+                } else {
+                    setError(
+                        'Unable to load your renovation requests.'
+                    )
+                }
 
             } finally {
 
@@ -49,6 +52,35 @@ function CustomerRenovations() {
         return `Rs. ${Number(budget).toLocaleString()}`
     }
 
+    const formatType = (type) => {
+
+        if (!type) {
+            return 'Renovation Project'
+        }
+
+        return type
+            .replaceAll('_', ' ')
+            .toLowerCase()
+            .replace(/\b\w/g, (letter) =>
+                letter.toUpperCase()
+            )
+    }
+
+    const formatDate = (date) => {
+
+        if (!date) {
+            return 'Not specified'
+        }
+
+        return new Date(
+            `${date}T00:00:00`
+        ).toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        })
+    }
+
     return (
 
         <div className="dashboard-layout">
@@ -56,8 +88,6 @@ function CustomerRenovations() {
             <DashboardSidebar />
 
             <main className="dashboard-main">
-
-                {/* PAGE HEADER */}
 
                 <header className="dashboard-header">
 
@@ -86,36 +116,23 @@ function CustomerRenovations() {
 
                 </header>
 
-
-                {/* LOADING */}
-
                 {loading && (
 
                     <section className="dashboard-content-card">
-
                         <p>
                             Loading your renovation requests...
                         </p>
-
                     </section>
 
                 )}
-
-
-                {/* ERROR */}
 
                 {!loading && error && (
 
                     <section className="dashboard-content-card">
-
                         <p>{error}</p>
-
                     </section>
 
                 )}
-
-
-                {/* EMPTY STATE */}
 
                 {!loading &&
                     !error &&
@@ -151,9 +168,6 @@ function CustomerRenovations() {
 
                     )}
 
-
-                {/* RENOVATION LIST */}
-
                 {!loading &&
                     !error &&
                     renovations.length > 0 && (
@@ -176,7 +190,9 @@ function CustomerRenovations() {
                                             </p>
 
                                             <h2>
-                                                {renovation.renovationType}
+                                                {formatType(
+                                                    renovation.renovationType
+                                                )}
                                             </h2>
 
                                         </div>
@@ -188,50 +204,64 @@ function CustomerRenovations() {
                                                     : 'pending'
                                             }`}
                                         >
-                                            {renovation.status || 'PENDING'}
+                                            {
+                                                renovation.status ||
+                                                'PENDING'
+                                            }
                                         </span>
 
                                     </div>
-
 
                                     <div className="renovation-details">
 
                                         <div>
 
-                                            <span>Customer</span>
+                                            <span>
+                                                Property Type
+                                            </span>
 
                                             <strong>
-                                                {renovation.customerName}
+                                                {formatType(
+                                                    renovation.propertyType
+                                                )}
                                             </strong>
 
                                         </div>
 
-
                                         <div>
 
-                                            <span>Phone</span>
+                                            <span>
+                                                Renovation Areas
+                                            </span>
 
                                             <strong>
-                                                {renovation.phoneNumber}
+                                                {
+                                                    renovation.renovationAreas ||
+                                                    'Not specified'
+                                                }
                                             </strong>
 
                                         </div>
 
-
                                         <div>
 
-                                            <span>Property Address</span>
+                                            <span>
+                                                Preferred Date
+                                            </span>
 
                                             <strong>
-                                                {renovation.propertyAddress}
+                                                {formatDate(
+                                                    renovation.preferredDate
+                                                )}
                                             </strong>
 
                                         </div>
 
-
                                         <div>
 
-                                            <span>Estimated Budget</span>
+                                            <span>
+                                                Estimated Budget
+                                            </span>
 
                                             <strong>
                                                 {formatBudget(
@@ -242,6 +272,70 @@ function CustomerRenovations() {
                                         </div>
 
                                     </div>
+
+                                    <div className="renovation-details">
+
+                                        <div>
+
+                                            <span>
+                                                Customer
+                                            </span>
+
+                                            <strong>
+                                                {
+                                                    renovation.customerName
+                                                }
+                                            </strong>
+
+                                        </div>
+
+                                        <div>
+
+                                            <span>
+                                                Phone
+                                            </span>
+
+                                            <strong>
+                                                {
+                                                    renovation.phoneNumber
+                                                }
+                                            </strong>
+
+                                        </div>
+
+                                        <div>
+
+                                            <span>
+                                                Property Address
+                                            </span>
+
+                                            <strong>
+                                                {
+                                                    renovation.propertyAddress
+                                                }
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+                                    {renovation.description && (
+
+                                        <div className="renovation-description">
+
+                                            <span>
+                                                Description
+                                            </span>
+
+                                            <p>
+                                                {
+                                                    renovation.description
+                                                }
+                                            </p>
+
+                                        </div>
+
+                                    )}
 
                                 </article>
 

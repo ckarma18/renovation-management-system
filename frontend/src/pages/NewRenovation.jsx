@@ -49,30 +49,30 @@ function NewRenovation() {
         setSuccessMessage('')
         setErrorMessage('')
 
-        // Backend currently has only one renovationType field,
-        // so we combine the detailed frontend selections into it.
-        const renovationType = [
-            formData.projectType,
-            formData.propertyType,
-            formData.areas.length > 0
-                ? `Areas: ${formData.areas.join(', ')}`
-                : '',
-            formData.preferredDate
-                ? `Preferred Date: ${formData.preferredDate}`
-                : '',
-            formData.description
-                ? `Description: ${formData.description}`
-                : '',
-        ]
-            .filter(Boolean)
-            .join(' | ')
+
 
         const requestData = {
             customerName: formData.customerName.trim(),
             phoneNumber: formData.phoneNumber.trim(),
+
             propertyAddress: formData.address.trim(),
-            renovationType: renovationType,
-            estimatedBudget: Number(formData.budget),
+
+            renovationType: formData.projectType,
+
+            propertyType: formData.propertyType,
+
+            renovationAreas:
+                formData.areas.join(', '),
+
+            preferredDate:
+                formData.preferredDate || null,
+
+            description:
+                formData.description.trim(),
+
+            estimatedBudget:
+                Number(formData.budget),
+
             status: 'PENDING',
         }
 

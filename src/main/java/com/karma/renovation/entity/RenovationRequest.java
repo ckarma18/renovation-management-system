@@ -1,16 +1,13 @@
 package com.karma.renovation.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -32,16 +29,30 @@ public class RenovationRequest {
     @NotBlank(message = "Property address is required")
     private String propertyAddress;
 
+    // Example:
+    // FULL_RENOVATION, PARTIAL_RENOVATION,
+    // SINGLE_AREA, REMODEL, REPAIR_RESTORATION
     @NotBlank(message = "Renovation type is required")
     private String renovationType;
+
+    // HOUSE, APARTMENT, OFFICE, SHOP, OTHER
+    private String propertyType;
+
+    // Example:
+    // Kitchen, Bathroom / Toilet, Flooring
+    @Column(length = 1000)
+    private String renovationAreas;
+
+    private LocalDate preferredDate;
+
+    @Column(length = 3000)
+    private String description;
 
     private Double estimatedBudget;
 
     private String status;
 
     @ManyToOne
-    @JoinColumn(
-            name = "user_id"
-    )
+    @JoinColumn(name = "user_id")
     private AppUser user;
 }

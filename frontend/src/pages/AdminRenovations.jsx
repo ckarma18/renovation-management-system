@@ -13,6 +13,7 @@ function AdminRenovations() {
     const fetchRenovations = async () => {
 
         try {
+
             setLoading(true)
 
             const response = await api.get(
@@ -43,6 +44,7 @@ function AdminRenovations() {
             }
 
         } finally {
+
             setLoading(false)
         }
     }
@@ -60,13 +62,42 @@ function AdminRenovations() {
         setSuccessMessage('')
         setError('')
 
+        /*
+         * IMPORTANT:
+         * Send every renovation field back to the backend.
+         * Otherwise changing only the status could remove
+         * the structured renovation information.
+         */
         const requestData = {
-            customerName: renovation.customerName,
-            phoneNumber: renovation.phoneNumber,
-            propertyAddress: renovation.propertyAddress,
-            renovationType: renovation.renovationType,
-            estimatedBudget: renovation.estimatedBudget,
-            status: newStatus,
+
+            customerName:
+            renovation.customerName,
+
+            phoneNumber:
+            renovation.phoneNumber,
+
+            propertyAddress:
+            renovation.propertyAddress,
+
+            renovationType:
+            renovation.renovationType,
+
+            propertyType:
+            renovation.propertyType,
+
+            renovationAreas:
+            renovation.renovationAreas,
+
+            preferredDate:
+            renovation.preferredDate,
+
+            description:
+            renovation.description,
+
+            estimatedBudget:
+            renovation.estimatedBudget,
+
+            status: newStatus
         }
 
         try {
@@ -99,14 +130,20 @@ function AdminRenovations() {
             )
 
             if (err.response?.data?.message) {
-                setError(err.response.data.message)
+
+                setError(
+                    err.response.data.message
+                )
+
             } else {
+
                 setError(
                     'Unable to update renovation status.'
                 )
             }
 
         } finally {
+
             setUpdatingId(null)
         }
     }
@@ -125,12 +162,84 @@ function AdminRenovations() {
         ).toLocaleString()}`
     }
 
+    const formatDate = (date) => {
+
+        if (!date) {
+            return 'Not specified'
+        }
+
+        const parsedDate =
+            new Date(`${date}T00:00:00`)
+
+        if (Number.isNaN(parsedDate.getTime())) {
+            return date
+        }
+
+        return parsedDate.toLocaleDateString(
+            'en-US',
+            {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }
+        )
+    }
+
+    const formatRenovationType = (type) => {
+
+        if (!type) {
+            return 'Renovation Project'
+        }
+
+        return type
+            .replaceAll('_', ' ')
+            .toLowerCase()
+            .replace(/\b\w/g, (letter) =>
+                letter.toUpperCase()
+            )
+    }
+
+    const formatPropertyType = (type) => {
+
+        if (!type) {
+            return 'Not specified'
+        }
+
+        return type
+            .replaceAll('_', ' ')
+            .toLowerCase()
+            .replace(/\b\w/g, (letter) =>
+                letter.toUpperCase()
+            )
+    }
+
+    const formatAreas = (areas) => {
+
+        if (!areas) {
+            return 'Not specified'
+        }
+
+        if (Array.isArray(areas)) {
+
+            if (areas.length === 0) {
+                return 'Not specified'
+            }
+
+            return areas.join(', ')
+        }
+
+        return areas
+    }
+
     return (
+
         <div className="dashboard-layout">
 
             <AdminSidebar />
 
             <main className="dashboard-main">
+
+                {/* PAGE HEADER */}
 
                 <header className="dashboard-header">
 
@@ -153,28 +262,50 @@ function AdminRenovations() {
 
                 </header>
 
+
+                {/* SUCCESS MESSAGE */}
+
                 {successMessage && (
+
                     <div className="success-message">
+
                         {successMessage}
+
                     </div>
                 )}
+
+
+                {/* ERROR MESSAGE */}
 
                 {error && (
+
                     <div className="error-message">
+
                         {error}
+
                     </div>
                 )}
 
+
+                {/* LOADING */}
+
                 {loading && (
+
                     <section className="dashboard-content-card">
+
                         <p>
                             Loading renovation requests...
                         </p>
+
                     </section>
                 )}
 
+
+                {/* EMPTY STATE */}
+
                 {!loading &&
                     renovations.length === 0 && (
+
                         <section className="dashboard-content-card">
 
                             <div className="dashboard-empty">
@@ -187,6 +318,9 @@ function AdminRenovations() {
 
                         </section>
                     )}
+
+
+                {/* RENOVATION LIST */}
 
                 {!loading &&
                     renovations.length > 0 && (
@@ -201,6 +335,8 @@ function AdminRenovations() {
                                         key={renovation.id}
                                     >
 
+                                        {/* TOP */}
+
                                         <div className="renovation-card-top">
 
                                             <div>
@@ -211,9 +347,9 @@ function AdminRenovations() {
                                                 </p>
 
                                                 <h2>
-                                                    {
+                                                    {formatRenovationType(
                                                         renovation.renovationType
-                                                    }
+                                                    )}
                                                 </h2>
 
                                             </div>
@@ -233,49 +369,55 @@ function AdminRenovations() {
 
                                         </div>
 
+
+                                        {/* PROJECT INFORMATION */}
+
                                         <div className="renovation-details">
 
                                             <div>
 
                                                 <span>
-                                                    Customer
+                                                    Property Type
                                                 </span>
 
                                                 <strong>
-                                                    {
-                                                        renovation.customerName
-                                                    }
+                                                    {formatPropertyType(
+                                                        renovation.propertyType
+                                                    )}
                                                 </strong>
 
                                             </div>
+
 
                                             <div>
 
                                                 <span>
-                                                    Phone
+                                                    Renovation Areas
                                                 </span>
 
                                                 <strong>
-                                                    {
-                                                        renovation.phoneNumber
-                                                    }
+                                                    {formatAreas(
+                                                        renovation.renovationAreas
+                                                    )}
                                                 </strong>
 
                                             </div>
+
 
                                             <div>
 
                                                 <span>
-                                                    Property Address
+                                                    Preferred Date
                                                 </span>
 
                                                 <strong>
-                                                    {
-                                                        renovation.propertyAddress
-                                                    }
+                                                    {formatDate(
+                                                        renovation.preferredDate
+                                                    )}
                                                 </strong>
 
                                             </div>
+
 
                                             <div>
 
@@ -291,7 +433,75 @@ function AdminRenovations() {
 
                                             </div>
 
+
+                                            <div>
+
+                                                <span>
+                                                    Customer
+                                                </span>
+
+                                                <strong>
+                                                    {
+                                                        renovation.customerName
+                                                    }
+                                                </strong>
+
+                                            </div>
+
+
+                                            <div>
+
+                                                <span>
+                                                    Phone
+                                                </span>
+
+                                                <strong>
+                                                    {
+                                                        renovation.phoneNumber
+                                                    }
+                                                </strong>
+
+                                            </div>
+
+
+                                            <div>
+
+                                                <span>
+                                                    Property Address
+                                                </span>
+
+                                                <strong>
+                                                    {
+                                                        renovation.propertyAddress
+                                                    }
+                                                </strong>
+
+                                            </div>
+
                                         </div>
+
+
+                                        {/* DESCRIPTION */}
+
+                                        {renovation.description && (
+
+                                            <div className="renovation-description">
+
+                                                <span>
+                                                    Description
+                                                </span>
+
+                                                <p>
+                                                    {
+                                                        renovation.description
+                                                    }
+                                                </p>
+
+                                            </div>
+                                        )}
+
+
+                                        {/* ADMIN STATUS CONTROL */}
 
                                         <div className="admin-renovation-actions">
 
@@ -353,14 +563,13 @@ function AdminRenovations() {
                                                 renovation.id && (
 
                                                     <span className="status-updating">
-                                                    Updating...
-                                                </span>
+                                                        Updating...
+                                                    </span>
                                                 )}
 
                                         </div>
 
                                     </article>
-
                                 )
                             )}
 

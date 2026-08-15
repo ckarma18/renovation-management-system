@@ -57,20 +57,67 @@ public class RenovationRequestService {
                 username
         );
 
-        RenovationRequest renovationRequest = new RenovationRequest();
+        RenovationRequest renovationRequest =
+                new RenovationRequest();
 
-        renovationRequest.setCustomerName(requestDTO.getCustomerName());
-        renovationRequest.setPhoneNumber(requestDTO.getPhoneNumber());
-        renovationRequest.setPropertyAddress(requestDTO.getPropertyAddress());
-        renovationRequest.setRenovationType(requestDTO.getRenovationType());
-        renovationRequest.setEstimatedBudget(requestDTO.getEstimatedBudget());
-        renovationRequest.setStatus(requestDTO.getStatus());
+        renovationRequest.setCustomerName(
+                requestDTO.getCustomerName()
+        );
 
-        // Link this request to the logged-in user
+        renovationRequest.setPhoneNumber(
+                requestDTO.getPhoneNumber()
+        );
+
+        renovationRequest.setPropertyAddress(
+                requestDTO.getPropertyAddress()
+        );
+
+        renovationRequest.setRenovationType(
+                requestDTO.getRenovationType()
+        );
+
+        renovationRequest.setPropertyType(
+                requestDTO.getPropertyType()
+        );
+
+        renovationRequest.setRenovationAreas(
+                requestDTO.getRenovationAreas()
+        );
+
+        renovationRequest.setPreferredDate(
+                requestDTO.getPreferredDate()
+        );
+
+        renovationRequest.setDescription(
+                requestDTO.getDescription()
+        );
+
+        renovationRequest.setEstimatedBudget(
+                requestDTO.getEstimatedBudget()
+        );
+
+        /*
+         * New renovation requests should normally start as PENDING.
+         * If the frontend sends no status, we set it here.
+         */
+        if (
+                requestDTO.getStatus() == null ||
+                        requestDTO.getStatus().isBlank()
+        ) {
+            renovationRequest.setStatus("PENDING");
+        } else {
+            renovationRequest.setStatus(
+                    requestDTO.getStatus()
+            );
+        }
+
+        // Link request to logged-in user.
         renovationRequest.setUser(appUser);
 
         RenovationRequest savedRequest =
-                renovationRequestRepository.save(renovationRequest);
+                renovationRequestRepository.save(
+                        renovationRequest
+                );
 
         logger.info(
                 "Renovation request created successfully with ID: {} for user: {}",
@@ -82,7 +129,8 @@ public class RenovationRequestService {
     }
 
     // READ ALL WITH PAGINATION AND SORTING
-    public PaginationResponse<RenovationResponseDTO> getAllRenovationRequests(
+    public PaginationResponse<RenovationResponseDTO>
+    getAllRenovationRequests(
             int page,
             int size,
             String sortBy,
@@ -105,15 +153,20 @@ public class RenovationRequestService {
             sort = Sort.by(sortBy).ascending();
         }
 
-        Pageable pageable = PageRequest.of(page, size, sort);
+        Pageable pageable =
+                PageRequest.of(page, size, sort);
 
         Page<RenovationRequest> renovationPage =
-                renovationRequestRepository.findAll(pageable);
+                renovationRequestRepository.findAll(
+                        pageable
+                );
 
-        var renovationDTOs = renovationPage.getContent()
-                .stream()
-                .map(this::convertToResponseDTO)
-                .toList();
+        List<RenovationResponseDTO> renovationDTOs =
+                renovationPage
+                        .getContent()
+                        .stream()
+                        .map(this::convertToResponseDTO)
+                        .toList();
 
         return new PaginationResponse<>(
                 renovationDTOs,
@@ -127,18 +180,27 @@ public class RenovationRequestService {
     }
 
     // READ BY ID
-    public RenovationResponseDTO getRenovationRequestById(Long id) {
+    public RenovationResponseDTO
+    getRenovationRequestById(
+            Long id
+    ) {
 
-        logger.info("Fetching renovation request with ID: {}", id);
+        logger.info(
+                "Fetching renovation request with ID: {}",
+                id
+        );
 
         RenovationRequest renovationRequest =
                 findRenovationRequestById(id);
 
-        return convertToResponseDTO(renovationRequest);
+        return convertToResponseDTO(
+                renovationRequest
+        );
     }
 
     // SEARCH BY CUSTOMER NAME
-    public List<RenovationResponseDTO> searchByCustomerName(
+    public List<RenovationResponseDTO>
+    searchByCustomerName(
             String customerName
     ) {
 
@@ -149,51 +211,102 @@ public class RenovationRequestService {
 
         List<RenovationRequest> requests =
                 renovationRequestRepository
-                        .findByCustomerNameContainingIgnoreCase(customerName);
+                        .findByCustomerNameContainingIgnoreCase(
+                                customerName
+                        );
 
-        return requests.stream()
+        return requests
+                .stream()
                 .map(this::convertToResponseDTO)
                 .toList();
     }
 
     // UPDATE
-    public RenovationResponseDTO updateRenovationRequest(
+    public RenovationResponseDTO
+    updateRenovationRequest(
             Long id,
             RenovationRequestDTO requestDTO
     ) {
 
-        logger.info("Updating renovation request with ID: {}", id);
+        logger.info(
+                "Updating renovation request with ID: {}",
+                id
+        );
 
         RenovationRequest renovationRequest =
                 findRenovationRequestById(id);
 
-        renovationRequest.setCustomerName(requestDTO.getCustomerName());
-        renovationRequest.setPhoneNumber(requestDTO.getPhoneNumber());
-        renovationRequest.setPropertyAddress(requestDTO.getPropertyAddress());
-        renovationRequest.setRenovationType(requestDTO.getRenovationType());
-        renovationRequest.setEstimatedBudget(requestDTO.getEstimatedBudget());
-        renovationRequest.setStatus(requestDTO.getStatus());
+        renovationRequest.setCustomerName(
+                requestDTO.getCustomerName()
+        );
+
+        renovationRequest.setPhoneNumber(
+                requestDTO.getPhoneNumber()
+        );
+
+        renovationRequest.setPropertyAddress(
+                requestDTO.getPropertyAddress()
+        );
+
+        renovationRequest.setRenovationType(
+                requestDTO.getRenovationType()
+        );
+
+        renovationRequest.setPropertyType(
+                requestDTO.getPropertyType()
+        );
+
+        renovationRequest.setRenovationAreas(
+                requestDTO.getRenovationAreas()
+        );
+
+        renovationRequest.setPreferredDate(
+                requestDTO.getPreferredDate()
+        );
+
+        renovationRequest.setDescription(
+                requestDTO.getDescription()
+        );
+
+        renovationRequest.setEstimatedBudget(
+                requestDTO.getEstimatedBudget()
+        );
+
+        renovationRequest.setStatus(
+                requestDTO.getStatus()
+        );
 
         RenovationRequest updatedRequest =
-                renovationRequestRepository.save(renovationRequest);
+                renovationRequestRepository.save(
+                        renovationRequest
+                );
 
         logger.info(
                 "Renovation request updated successfully with ID: {}",
                 updatedRequest.getId()
         );
 
-        return convertToResponseDTO(updatedRequest);
+        return convertToResponseDTO(
+                updatedRequest
+        );
     }
 
     // DELETE
-    public void deleteRenovationRequest(Long id) {
+    public void deleteRenovationRequest(
+            Long id
+    ) {
 
-        logger.info("Deleting renovation request with ID: {}", id);
+        logger.info(
+                "Deleting renovation request with ID: {}",
+                id
+        );
 
         RenovationRequest renovationRequest =
                 findRenovationRequestById(id);
 
-        renovationRequestRepository.delete(renovationRequest);
+        renovationRequestRepository.delete(
+                renovationRequest
+        );
 
         logger.info(
                 "Renovation request deleted successfully with ID: {}",
@@ -201,10 +314,40 @@ public class RenovationRequestService {
         );
     }
 
-    // Helper Method
-    private RenovationRequest findRenovationRequestById(Long id) {
+    // CUSTOMER - READ OWN RENOVATIONS
+    public List<RenovationResponseDTO>
+    getMyRenovationRequests() {
 
-        return renovationRequestRepository.findById(id)
+        String username =
+                getAuthenticatedUsername();
+
+        AppUser appUser = appUserRepository
+                .findByUsername(username)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Authenticated user not found: "
+                                        + username
+                        )
+                );
+
+        List<RenovationRequest> requests =
+                renovationRequestRepository
+                        .findByUser(appUser);
+
+        return requests
+                .stream()
+                .map(this::convertToResponseDTO)
+                .toList();
+    }
+
+    // HELPER - FIND BY ID
+    private RenovationRequest
+    findRenovationRequestById(
+            Long id
+    ) {
+
+        return renovationRequestRepository
+                .findById(id)
                 .orElseThrow(() -> {
 
                     logger.error(
@@ -213,12 +356,13 @@ public class RenovationRequestService {
                     );
 
                     return new ResourceNotFoundException(
-                            "Renovation request not found with ID: " + id
+                            "Renovation request not found with ID: "
+                                    + id
                     );
                 });
     }
 
-    // Get logged-in username from Spring Security
+    // HELPER - GET LOGGED-IN USERNAME
     private String getAuthenticatedUsername() {
 
         Authentication authentication =
@@ -226,9 +370,13 @@ public class RenovationRequestService {
                         .getContext()
                         .getAuthentication();
 
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
+        if (
+                authentication == null ||
+                        !authentication.isAuthenticated() ||
+                        "anonymousUser".equals(
+                                authentication.getPrincipal()
+                        )
+        ) {
 
             throw new IllegalStateException(
                     "No authenticated user found"
@@ -238,54 +386,59 @@ public class RenovationRequestService {
         return authentication.getName();
     }
 
-    // Entity -> Response DTO
-    private RenovationResponseDTO convertToResponseDTO(
+    // ENTITY -> RESPONSE DTO
+    private RenovationResponseDTO
+    convertToResponseDTO(
             RenovationRequest renovationRequest
     ) {
 
         RenovationResponseDTO responseDTO =
                 new RenovationResponseDTO();
 
-        responseDTO.setId(renovationRequest.getId());
+        responseDTO.setId(
+                renovationRequest.getId()
+        );
+
         responseDTO.setCustomerName(
                 renovationRequest.getCustomerName()
         );
+
         responseDTO.setPhoneNumber(
                 renovationRequest.getPhoneNumber()
         );
+
         responseDTO.setPropertyAddress(
                 renovationRequest.getPropertyAddress()
         );
+
         responseDTO.setRenovationType(
                 renovationRequest.getRenovationType()
         );
+
+        responseDTO.setPropertyType(
+                renovationRequest.getPropertyType()
+        );
+
+        responseDTO.setRenovationAreas(
+                renovationRequest.getRenovationAreas()
+        );
+
+        responseDTO.setPreferredDate(
+                renovationRequest.getPreferredDate()
+        );
+
+        responseDTO.setDescription(
+                renovationRequest.getDescription()
+        );
+
         responseDTO.setEstimatedBudget(
                 renovationRequest.getEstimatedBudget()
         );
+
         responseDTO.setStatus(
                 renovationRequest.getStatus()
         );
 
         return responseDTO;
-    }
-
-    public List<RenovationResponseDTO> getMyRenovationRequests() {
-
-        String username = getAuthenticatedUsername();
-
-        AppUser appUser = appUserRepository
-                .findByUsername(username)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Authenticated user not found: " + username
-                        )
-                );
-
-        List<RenovationRequest> requests =
-                renovationRequestRepository.findByUser(appUser);
-
-        return requests.stream()
-                .map(this::convertToResponseDTO)
-                .toList();
     }
 }

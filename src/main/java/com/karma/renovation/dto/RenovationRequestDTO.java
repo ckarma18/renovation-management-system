@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 
+import java.time.LocalDate;
+
 public class RenovationRequestDTO {
 
     @NotBlank(message = "Customer name is required")
@@ -22,6 +24,14 @@ public class RenovationRequestDTO {
 
     @NotBlank(message = "Renovation type is required")
     private String renovationType;
+
+    private String propertyType;
+
+    private String renovationAreas;
+
+    private LocalDate preferredDate;
+
+    private String description;
 
     @NotNull(message = "Estimated budget is required")
     @Positive(message = "Estimated budget must be greater than zero")
@@ -62,6 +72,38 @@ public class RenovationRequestDTO {
 
     public void setRenovationType(String renovationType) {
         this.renovationType = renovationType;
+    }
+
+    public String getPropertyType() {
+        return propertyType;
+    }
+
+    public void setPropertyType(String propertyType) {
+        this.propertyType = propertyType;
+    }
+
+    public String getRenovationAreas() {
+        return renovationAreas;
+    }
+
+    public void setRenovationAreas(String renovationAreas) {
+        this.renovationAreas = renovationAreas;
+    }
+
+    public LocalDate getPreferredDate() {
+        return preferredDate;
+    }
+
+    public void setPreferredDate(LocalDate preferredDate) {
+        this.preferredDate = preferredDate;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Double getEstimatedBudget() {
