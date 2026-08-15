@@ -22,4 +22,7 @@ public class NotificationResponseDTO {
     private boolean read;
 
     private LocalDateTime createdAt;
+
+    // Customer who received the notification
+    private String username;
 }

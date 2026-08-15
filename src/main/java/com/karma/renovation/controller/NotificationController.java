@@ -22,10 +22,31 @@ public class NotificationController {
         this.notificationService = notificationService;
     }
 
+    // ADMIN - VIEW ALL NOTIFICATIONS
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<
+            ApiResponse<List<NotificationResponseDTO>>>
+    getAllNotifications() {
+
+        List<NotificationResponseDTO> notifications =
+                notificationService.getAllNotifications();
+
+        ApiResponse<List<NotificationResponseDTO>> response =
+                new ApiResponse<>(
+                        true,
+                        "Notifications fetched successfully.",
+                        notifications
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
     // CUSTOMER - VIEW OWN NOTIFICATIONS
     @PreAuthorize("hasRole('CUSTOMER')")
     @GetMapping("/my")
-    public ResponseEntity<ApiResponse<List<NotificationResponseDTO>>>
+    public ResponseEntity<
+            ApiResponse<List<NotificationResponseDTO>>>
     getMyNotifications(
             Authentication authentication
     ) {
@@ -45,10 +66,11 @@ public class NotificationController {
         return ResponseEntity.ok(response);
     }
 
-    // CUSTOMER - MARK NOTIFICATION AS READ
+    // CUSTOMER - MARK OWN NOTIFICATION AS READ
     @PreAuthorize("hasRole('CUSTOMER')")
     @PatchMapping("/{id}/read")
-    public ResponseEntity<ApiResponse<NotificationResponseDTO>>
+    public ResponseEntity<
+            ApiResponse<NotificationResponseDTO>>
     markNotificationAsRead(
             @PathVariable Long id,
             Authentication authentication

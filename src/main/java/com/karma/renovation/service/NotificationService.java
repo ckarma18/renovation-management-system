@@ -61,13 +61,25 @@ public class NotificationService {
     ) {
 
         return notificationRepository
-                .findByUser_UsernameOrderByCreatedAtDesc(username)
+                .findByUser_UsernameOrderByCreatedAtDesc(
+                        username
+                )
                 .stream()
                 .map(this::convertToResponseDTO)
                 .toList();
     }
 
-    // MARK NOTIFICATION AS READ
+    // ADMIN - GET ALL NOTIFICATIONS
+    public List<NotificationResponseDTO> getAllNotifications() {
+
+        return notificationRepository
+                .findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(this::convertToResponseDTO)
+                .toList();
+    }
+
+    // CUSTOMER - MARK NOTIFICATION AS READ
     public NotificationResponseDTO markAsRead(
             Long id,
             String username
@@ -82,8 +94,8 @@ public class NotificationService {
                                 )
                         );
 
-        // Make sure the notification belongs to
-        // the currently logged-in customer
+        // Make sure this notification belongs to
+        // the currently logged-in customer.
         if (!notification
                 .getUser()
                 .getUsername()
@@ -97,9 +109,13 @@ public class NotificationService {
         notification.setRead(true);
 
         Notification updatedNotification =
-                notificationRepository.save(notification);
+                notificationRepository.save(
+                        notification
+                );
 
-        return convertToResponseDTO(updatedNotification);
+        return convertToResponseDTO(
+                updatedNotification
+        );
     }
 
     // ENTITY -> RESPONSE DTO
@@ -110,12 +126,35 @@ public class NotificationService {
         NotificationResponseDTO responseDTO =
                 new NotificationResponseDTO();
 
-        responseDTO.setId(notification.getId());
-        responseDTO.setTitle(notification.getTitle());
-        responseDTO.setMessage(notification.getMessage());
-        responseDTO.setSent(notification.isSent());
-        responseDTO.setRead(notification.isRead());
-        responseDTO.setCreatedAt(notification.getCreatedAt());
+        responseDTO.setId(
+                notification.getId()
+        );
+
+        responseDTO.setTitle(
+                notification.getTitle()
+        );
+
+        responseDTO.setMessage(
+                notification.getMessage()
+        );
+
+        responseDTO.setSent(
+                notification.isSent()
+        );
+
+        responseDTO.setRead(
+                notification.isRead()
+        );
+
+        responseDTO.setCreatedAt(
+                notification.getCreatedAt()
+        );
+
+        responseDTO.setUsername(
+                notification
+                        .getUser()
+                        .getUsername()
+        );
 
         return responseDTO;
     }

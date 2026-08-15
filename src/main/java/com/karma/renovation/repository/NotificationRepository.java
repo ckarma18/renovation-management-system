@@ -8,7 +8,11 @@ import java.util.List;
 public interface NotificationRepository
         extends JpaRepository<Notification, Long> {
 
+    // CUSTOMER - own notifications
     List<Notification> findByUser_UsernameOrderByCreatedAtDesc(
             String username
     );
+
+    // ADMIN - all notifications newest first
+    List<Notification> findAllByOrderByCreatedAtDesc();
 }

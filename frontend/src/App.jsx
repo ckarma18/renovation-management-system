@@ -14,6 +14,7 @@ import CustomerNotifications from './pages/CustomerNotifications'
 import CustomerPayments from './pages/CustomerPayments'
 import AdminPayments from './pages/AdminPayments'
 import NotFound from './pages/NotFound'
+import AdminNotifications from './pages/AdminNotifications'
 
 function App() {
     return (
@@ -112,6 +113,11 @@ function App() {
                         <AdminPayments />
                     </ProtectedRoute>
                 }
+            />
+
+            <Route
+                path="/admin/notifications"
+                element={<AdminNotifications />}
             />
 
             <Route path="*" element={<NotFound />} />
