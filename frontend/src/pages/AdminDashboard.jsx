@@ -8,38 +8,65 @@ function AdminDashboard() {
     const navigate = useNavigate()
 
     const [renovations, setRenovations] = useState([])
+    const [bookings, setBookings] = useState([])
+    const [payments, setPayments] = useState([])
+
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
 
     useEffect(() => {
-        const fetchRenovations = async () => {
+        const loadDashboard = async () => {
             try {
-                const response = await api.get(
-                    '/api/renovations?page=0&size=100&sortBy=id&sortDir=desc'
-                )
+                setLoading(true)
+                setError('')
 
-                const paginationData = response.data.data
+                const [
+                    renovationsResponse,
+                    bookingsResponse,
+                    paymentsResponse,
+                ] = await Promise.all([
+                    api.get(
+                        '/api/renovations?page=0&size=100&sortBy=id&sortDir=desc'
+                    ),
+                    api.get('/api/bookings'),
+                    api.get('/api/payments'),
+                ])
+
+                const renovationPage =
+                    renovationsResponse.data.data
 
                 setRenovations(
-                    paginationData?.content || []
+                    renovationPage?.content || []
                 )
 
-                setError('')
+                setBookings(
+                    bookingsResponse.data.data || []
+                )
+
+                setPayments(
+                    paymentsResponse.data.data || []
+                )
+
             } catch (err) {
                 console.error(
-                    'Failed to load admin renovations:',
+                    'Failed to load admin dashboard:',
                     err
                 )
 
-                setError(
-                    'Unable to load renovation requests.'
-                )
+                if (err.response?.data?.message) {
+                    setError(err.response.data.message)
+                } else {
+                    setError(
+                        'Unable to load dashboard information.'
+                    )
+                }
+
             } finally {
                 setLoading(false)
             }
         }
 
-        fetchRenovations()
+        loadDashboard()
     }, [])
 
     const pendingRenovations =
@@ -60,6 +87,16 @@ function AdminDashboard() {
             )
         }).length
 
+    const totalPayments = payments.reduce(
+        (total, payment) =>
+            total + Number(payment.amount || 0),
+        0
+    )
+
+    const formatAmount = (amount) => {
+        return `Rs. ${Number(amount).toLocaleString()}`
+    }
+
     return (
         <div className="dashboard-layout">
 
@@ -70,6 +107,7 @@ function AdminDashboard() {
                 <header className="dashboard-header">
 
                     <div>
+
                         <p className="dashboard-label">
                             ADMIN PORTAL
                         </p>
@@ -83,6 +121,7 @@ function AdminDashboard() {
                             manage bookings, payments,
                             and customer updates.
                         </p>
+
                     </div>
 
                     <button
@@ -96,10 +135,18 @@ function AdminDashboard() {
 
                 </header>
 
+                {error && (
+                    <div className="error-message">
+                        {error}
+                    </div>
+                )}
+
                 <section className="dashboard-stats">
 
                     <div className="stat-card">
+
                         <span>01</span>
+
                         <p>Total Renovations</p>
 
                         <h2>
@@ -107,10 +154,13 @@ function AdminDashboard() {
                                 ? '...'
                                 : renovations.length}
                         </h2>
+
                     </div>
 
                     <div className="stat-card">
+
                         <span>02</span>
+
                         <p>Pending Reviews</p>
 
                         <h2>
@@ -118,10 +168,13 @@ function AdminDashboard() {
                                 ? '...'
                                 : pendingRenovations}
                         </h2>
+
                     </div>
 
                     <div className="stat-card">
+
                         <span>03</span>
+
                         <p>Active Projects</p>
 
                         <h2>
@@ -129,12 +182,56 @@ function AdminDashboard() {
                                 ? '...'
                                 : activeRenovations}
                         </h2>
+
                     </div>
 
                     <div className="stat-card">
+
                         <span>04</span>
-                        <p>Bookings</p>
-                        <h2>0</h2>
+
+                        <p>Total Bookings</p>
+
+                        <h2>
+                            {loading
+                                ? '...'
+                                : bookings.length}
+                        </h2>
+
+                    </div>
+
+                </section>
+
+                <section
+                    className="dashboard-stats"
+                    style={{ marginTop: '-20px' }}
+                >
+
+                    <div className="stat-card">
+
+                        <span>05</span>
+
+                        <p>Total Payments</p>
+
+                        <h2>
+                            {loading
+                                ? '...'
+                                : payments.length}
+                        </h2>
+
+                    </div>
+
+                    <div className="stat-card">
+
+                        <span>06</span>
+
+                        <p>Amount Received</p>
+
+                        <h2>
+                            {loading
+                                ? '...'
+                                : formatAmount(totalPayments)}
+                        </h2>
+
                     </div>
 
                 </section>
@@ -149,55 +246,91 @@ function AdminDashboard() {
                         Latest renovation requests
                     </h2>
 
-                    {error && (
-                        <div className="error-message">
-                            {error}
+                    {loading && (
+                        <div className="dashboard-empty">
+                            <p>
+                                Loading renovation requests...
+                            </p>
                         </div>
                     )}
 
                     {!loading &&
-                        !error &&
                         renovations.length === 0 && (
 
                             <div className="dashboard-empty">
+
                                 <h3>
                                     No renovation requests
                                 </h3>
+
                             </div>
+
                         )}
 
                     {!loading &&
-                        !error &&
-                        renovations
-                            .slice(0, 3)
-                            .map((renovation) => (
+                        renovations.length > 0 && (
 
-                                <div
-                                    className="admin-recent-item"
-                                    key={renovation.id}
+                            <div>
+
+                                {renovations
+                                    .slice(0, 3)
+                                    .map((renovation) => (
+
+                                        <div
+                                            className="admin-recent-item"
+                                            key={renovation.id}
+                                        >
+
+                                            <div>
+
+                                                <strong>
+                                                    Renovation #
+                                                    {renovation.id}
+                                                </strong>
+
+                                                <p>
+                                                    {
+                                                        renovation.customerName
+                                                    }
+                                                    {' — '}
+                                                    {
+                                                        renovation.propertyAddress
+                                                    }
+                                                </p>
+
+                                            </div>
+
+                                            <span
+                                                className={`renovation-status ${
+                                                    renovation.status
+                                                        ?.toLowerCase() ||
+                                                    'pending'
+                                                }`}
+                                            >
+                                                {
+                                                    renovation.status ||
+                                                    'PENDING'
+                                                }
+                                            </span>
+
+                                        </div>
+
+                                    ))}
+
+                                <button
+                                    className="dashboard-primary-button"
+                                    onClick={() =>
+                                        navigate(
+                                            '/admin/renovations'
+                                        )
+                                    }
                                 >
-                                    <div>
-                                        <strong>
-                                            Renovation #
-                                            {renovation.id}
-                                        </strong>
+                                    View All Renovations
+                                </button>
 
-                                        <p>
-                                            {renovation.customerName}
-                                            {' — '}
-                                            {
-                                                renovation.propertyAddress
-                                            }
-                                        </p>
-                                    </div>
+                            </div>
 
-                                    <span className="renovation-status pending">
-                                        {renovation.status ||
-                                            'PENDING'}
-                                    </span>
-                                </div>
-
-                            ))}
+                        )}
 
                 </section>
 

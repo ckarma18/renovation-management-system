@@ -8,36 +8,134 @@ function CustomerDashboard() {
     const navigate = useNavigate()
 
     const [renovations, setRenovations] = useState([])
+    const [bookings, setBookings] = useState([])
+    const [payments, setPayments] = useState([])
+    const [notifications, setNotifications] = useState([])
+
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
 
     useEffect(() => {
-        fetchRenovations()
+        const loadDashboard = async () => {
+            try {
+                setLoading(true)
+                setError('')
+
+                const [
+                    renovationsResponse,
+                    bookingsResponse,
+                    paymentsResponse,
+                    notificationsResponse,
+                ] = await Promise.all([
+                    api.get('/api/renovations/my'),
+                    api.get('/api/bookings/my'),
+                    api.get('/api/payments/my'),
+                    api.get('/api/notifications/my'),
+                ])
+
+                setRenovations(
+                    renovationsResponse.data.data || []
+                )
+
+                setBookings(
+                    bookingsResponse.data.data || []
+                )
+
+                setPayments(
+                    paymentsResponse.data.data || []
+                )
+
+                setNotifications(
+                    notificationsResponse.data.data || []
+                )
+
+            } catch (err) {
+                console.error(
+                    'Failed to load customer dashboard:',
+                    err
+                )
+
+                if (err.response?.data?.message) {
+                    setError(err.response.data.message)
+                } else {
+                    setError(
+                        'Unable to load your dashboard information.'
+                    )
+                }
+
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        loadDashboard()
     }, [])
 
-    const fetchRenovations = async () => {
-        try {
-            setLoading(true)
+    /*
+     * Active renovation:
+     * anything that is not finished/cancelled/rejected.
+     */
+    const activeRenovations = renovations.filter(
+        (renovation) => {
+            const status =
+                renovation.status?.toUpperCase()
 
-            const response = await api.get('/api/renovations/my')
-
-            setRenovations(response.data.data || [])
-            setError('')
-        } catch (err) {
-            console.error('Failed to load renovations:', err)
-
-            setError('Unable to load your renovation projects.')
-        } finally {
-            setLoading(false)
+            return (
+                status !== 'COMPLETED' &&
+                status !== 'CANCELLED' &&
+                status !== 'REJECTED'
+            )
         }
-    }
+    ).length
 
-    // Count renovations that are not completed/cancelled
-    const activeRenovations = renovations.filter((renovation) => {
-        const status = renovation.status?.toUpperCase()
+    /*
+     * Upcoming booking:
+     * booking is scheduled and the date has not passed.
+     */
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-        return status !== 'COMPLETED' && status !== 'CANCELLED'
-    }).length
+    const upcomingBookings = bookings.filter(
+        (booking) => {
+            if (!booking.bookingDate) {
+                return false
+            }
+
+            const bookingDate =
+                new Date(`${booking.bookingDate}T00:00:00`)
+
+            const status =
+                booking.status?.toUpperCase()
+
+            return (
+                bookingDate >= today &&
+                status !== 'CANCELLED'
+            )
+        }
+    ).length
+
+    /*
+     * A booking requires payment if we have not received
+     * a payment record for that booking yet.
+     */
+    const paidBookingIds = new Set(
+        payments.map(
+            (payment) => payment.bookingId
+        )
+    )
+
+    const pendingPayments = bookings.filter(
+        (booking) =>
+            !paidBookingIds.has(booking.id)
+    ).length
+
+    /*
+     * Count notifications whose read field is false.
+     */
+    const unreadNotifications =
+        notifications.filter(
+            (notification) => !notification.read
+        ).length
 
     return (
         <div className="dashboard-layout">
@@ -47,6 +145,7 @@ function CustomerDashboard() {
             <main className="dashboard-main">
 
                 <header className="dashboard-header">
+
                     <div>
                         <p className="dashboard-label">
                             CUSTOMER PORTAL
@@ -57,45 +156,115 @@ function CustomerDashboard() {
                         </h1>
 
                         <p>
-                            Manage your renovation projects, bookings,
-                            payments and updates in one place.
+                            Manage your renovation projects,
+                            bookings, payments and updates
+                            in one place.
                         </p>
                     </div>
 
                     <button
                         className="dashboard-primary-button"
                         onClick={() =>
-                            navigate('/customer/renovations/new')
+                            navigate(
+                                '/customer/renovations/new'
+                            )
                         }
                     >
                         + Start Renovation
                     </button>
+
                 </header>
+
+                {error && (
+                    <div className="error-message">
+                        {error}
+                    </div>
+                )}
 
                 <section className="dashboard-stats">
 
-                    <div className="stat-card">
+                    <div
+                        className="stat-card"
+                        onClick={() =>
+                            navigate(
+                                '/customer/renovations'
+                            )
+                        }
+                    >
                         <span>01</span>
-                        <p>Active Renovations</p>
-                        <h2>{activeRenovations}</h2>
+
+                        <p>
+                            Active Renovations
+                        </p>
+
+                        <h2>
+                            {loading
+                                ? '...'
+                                : activeRenovations}
+                        </h2>
                     </div>
 
-                    <div className="stat-card">
+                    <div
+                        className="stat-card"
+                        onClick={() =>
+                            navigate(
+                                '/customer/bookings'
+                            )
+                        }
+                    >
                         <span>02</span>
-                        <p>Upcoming Bookings</p>
-                        <h2>0</h2>
+
+                        <p>
+                            Upcoming Bookings
+                        </p>
+
+                        <h2>
+                            {loading
+                                ? '...'
+                                : upcomingBookings}
+                        </h2>
                     </div>
 
-                    <div className="stat-card">
+                    <div
+                        className="stat-card"
+                        onClick={() =>
+                            navigate(
+                                '/customer/payments'
+                            )
+                        }
+                    >
                         <span>03</span>
-                        <p>Pending Payments</p>
-                        <h2>0</h2>
+
+                        <p>
+                            Pending Payments
+                        </p>
+
+                        <h2>
+                            {loading
+                                ? '...'
+                                : pendingPayments}
+                        </h2>
                     </div>
 
-                    <div className="stat-card">
+                    <div
+                        className="stat-card"
+                        onClick={() =>
+                            navigate(
+                                '/customer/notifications'
+                            )
+                        }
+                    >
                         <span>04</span>
-                        <p>Unread Notifications</p>
-                        <h2>0</h2>
+
+                        <p>
+                            Unread Notifications
+                        </p>
+
+                        <h2>
+                            {loading
+                                ? '...'
+                                : unreadNotifications}
+                        </h2>
                     </div>
 
                 </section>
@@ -107,18 +276,16 @@ function CustomerDashboard() {
                             RECENT ACTIVITY
                         </p>
 
-                        <h2>Your renovation projects</h2>
+                        <h2>
+                            Your renovation projects
+                        </h2>
                     </div>
 
                     {loading && (
                         <div className="dashboard-empty">
-                            <p>Loading renovation projects...</p>
-                        </div>
-                    )}
-
-                    {!loading && error && (
-                        <div className="dashboard-empty">
-                            <p>{error}</p>
+                            <p>
+                                Loading renovation projects...
+                            </p>
                         </div>
                     )}
 
@@ -133,8 +300,9 @@ function CustomerDashboard() {
                                 </h3>
 
                                 <p>
-                                    Start your first renovation project
-                                    and manage everything from here.
+                                    Start your first renovation
+                                    project and manage everything
+                                    from here.
                                 </p>
 
                                 <button
@@ -157,14 +325,17 @@ function CustomerDashboard() {
 
                             <div className="dashboard-renovation-list">
 
-                                {renovations.slice(0, 3).map(
-                                    (renovation) => (
+                                {renovations
+                                    .slice(0, 3)
+                                    .map((renovation) => (
 
                                         <div
                                             className="dashboard-renovation-item"
                                             key={renovation.id}
                                         >
+
                                             <div>
+
                                                 <p className="dashboard-label">
                                                     RENOVATION #
                                                     {renovation.id}
@@ -181,16 +352,25 @@ function CustomerDashboard() {
                                                         renovation.propertyAddress
                                                     }
                                                 </p>
+
                                             </div>
 
-                                            <span>
-                                                {renovation.status ||
-                                                    'PENDING'}
+                                            <span
+                                                className={`renovation-status ${
+                                                    renovation.status
+                                                        ?.toLowerCase() ||
+                                                    'pending'
+                                                }`}
+                                            >
+                                                {
+                                                    renovation.status ||
+                                                    'PENDING'
+                                                }
                                             </span>
 
                                         </div>
-                                    )
-                                )}
+
+                                    ))}
 
                                 <button
                                     className="dashboard-primary-button"
