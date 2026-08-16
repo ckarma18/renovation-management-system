@@ -19,7 +19,8 @@ public class GlobalExceptionHandler {
     handleValidationExceptions(
             MethodArgumentNotValidException exception) {
 
-        Map<String, String> errors = new LinkedHashMap<>();
+        Map<String, String> errors =
+                new LinkedHashMap<>();
 
         exception.getBindingResult()
                 .getFieldErrors()
@@ -31,7 +32,10 @@ public class GlobalExceptionHandler {
                     String errorMessage =
                             fieldError.getDefaultMessage();
 
-                    errors.put(fieldName, errorMessage);
+                    errors.put(
+                            fieldName,
+                            errorMessage
+                    );
                 });
 
         ApiResponse<Map<String, String>> response =
@@ -61,6 +65,24 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .body(response);
+    }
+
+    // BUSINESS RULE / BAD REQUEST ERROR
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Object>>
+    handleIllegalArgumentException(
+            IllegalArgumentException exception) {
+
+        ApiResponse<Object> response =
+                new ApiResponse<>(
+                        false,
+                        exception.getMessage(),
+                        null
+                );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(response);
     }
 }

@@ -117,10 +117,15 @@ function App() {
 
             <Route
                 path="/admin/notifications"
-                element={<AdminNotifications />}
+                element={
+                    <ProtectedRoute allowedRole="ADMIN">
+                        <AdminNotifications />
+                    </ProtectedRoute>
+                }
             />
 
             <Route path="*" element={<NotFound />} />
+
         </Routes>
     )
 }

@@ -3,6 +3,7 @@ package com.karma.renovation.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -13,16 +14,21 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private static final String SECRET_KEY =
-            "renovation-project-secret-key-must-be-at-least-32-characters-long";
+    private final String secretKey;
+    private final long jwtExpiration;
 
-    private static final long JWT_EXPIRATION =
-            1000L * 60 * 60 * 24;
+    public JwtService(
+            @Value("${app.jwt.secret}") String secretKey,
+            @Value("${app.jwt.expiration}") long jwtExpiration
+    ) {
+        this.secretKey = secretKey;
+        this.jwtExpiration = jwtExpiration;
+    }
 
     private SecretKey getSigningKey() {
 
         return Keys.hmacShaKeyFor(
-                SECRET_KEY.getBytes(StandardCharsets.UTF_8)
+                secretKey.getBytes(StandardCharsets.UTF_8)
         );
     }
 
@@ -32,7 +38,10 @@ public class JwtService {
         Date currentDate = new Date();
 
         Date expirationDate =
-                new Date(currentDate.getTime() + JWT_EXPIRATION);
+                new Date(
+                        currentDate.getTime()
+                                + jwtExpiration
+                );
 
         return Jwts.builder()
                 .subject(username)
@@ -66,13 +75,16 @@ public class JwtService {
             Function<Claims, T> claimsResolver
     ) {
 
-        Claims claims = extractAllClaims(token);
+        Claims claims =
+                extractAllClaims(token);
 
         return claimsResolver.apply(claims);
     }
 
     // EXTRACT ALL CLAIMS
-    private Claims extractAllClaims(String token) {
+    private Claims extractAllClaims(
+            String token
+    ) {
 
         return Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -82,7 +94,9 @@ public class JwtService {
     }
 
     // CHECK EXPIRATION
-    private boolean isTokenExpired(String token) {
+    private boolean isTokenExpired(
+            String token
+    ) {
 
         return extractExpiration(token)
                 .before(new Date());
@@ -94,7 +108,8 @@ public class JwtService {
             String username
     ) {
 
-        String tokenUsername = extractUsername(token);
+        String tokenUsername =
+                extractUsername(token);
 
         return tokenUsername.equals(username)
                 && !isTokenExpired(token);
