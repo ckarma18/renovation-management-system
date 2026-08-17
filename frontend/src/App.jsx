@@ -1,5 +1,9 @@
 import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
+import Services from './pages/Services'
+import Projects from './pages/Projects'
+import HowItWorksPage from './pages/HowItWorksPage'
+import About from './pages/About'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import CustomerDashboard from './pages/CustomerDashboard'
@@ -16,13 +20,16 @@ import AdminPayments from './pages/AdminPayments'
 import NotFound from './pages/NotFound'
 import AdminNotifications from './pages/AdminNotifications'
 
+
 function App() {
     return (
         <Routes>
             <Route path="/" element={<Home />} />
-
+            <Route path="/services" element={<Services />}/>
+            <Route path="/projects" element={<Projects />}/>
+            <Route path="/how-it-works" element={<HowItWorksPage />}/>
+            <Route path="/about" element={<About />}/>
             <Route path="/login" element={<Login />} />
-
             <Route path="/register" element={<Register />} />
 
             <Route
